@@ -1,20 +1,6 @@
-import { Schema, model, Types, Document } from 'mongoose';
-
-interface Review extends Document {
-  userId: Types.ObjectId;
-  rating: number;
-  comment: string;
-}
-
-interface Book extends Document {
-  coverPhoto: string;
-  name: string;
-  authorId: Types.ObjectId;
-  shelve: 'read' | 'want_to_read' | 'currently_reading';
-  categoryId: Types.ObjectId;
-  description: string;
-  reviews: Review[];
-}
+import Book from '@/utils/interfaces/book.interface';
+import Review from '@/utils/interfaces/review.interface';
+import { Schema, model } from 'mongoose';
 
 const reviewSchema = new Schema<Review>({
   userId: {
