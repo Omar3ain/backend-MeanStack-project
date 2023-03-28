@@ -44,6 +44,7 @@
     "@/models": "dist/models",
     "@/routes": "dist/routes",
     "@/utils": "dist/utils",
-    "@/config": "dist/config"
+    "@/config": "dist/config",
+    "@/controllers": "dist/controllers"
   }
 }
