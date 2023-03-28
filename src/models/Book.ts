@@ -5,7 +5,6 @@ interface Review extends Document {
   rating: number;
   comment: string;
 }
-console.log(typeof Schema.Types.ObjectId === typeof Types.ObjectId);
 
 interface Book extends Document {
   coverPhoto: string;
