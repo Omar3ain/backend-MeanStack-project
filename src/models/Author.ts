@@ -1,3 +1,11 @@
+import { Schema, model } from "mongoose";
+interface Author {
+
+    firstName: string
+    lastName: string
+    Dob: Date
+    photo: string
+}
 const AuthorSchema = new Schema<Author>({
 
     firstName: { type: String },
