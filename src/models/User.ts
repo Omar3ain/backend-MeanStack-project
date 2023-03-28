@@ -5,15 +5,17 @@ interface User {
     lastName: string,
     email: string,
     password: string,
-    avatar: string
+    avatar: string,
+    isAdmin?: boolean
 }
 
 const userSchema = new Schema<User>({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: { type: String, required: true },
-    password: { type: String, required: true },
-    avatar: { type: String, required: true }
+    password: { type: String, required: true,  minLength: 6 },
+    avatar: { type: String, required: true },
+    isAdmin : {type : Boolean, default: false }
 },
     { timestamps: true });
 
