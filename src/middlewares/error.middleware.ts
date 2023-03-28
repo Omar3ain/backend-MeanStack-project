@@ -1,4 +1,4 @@
-import { Request , Response , NextFunction } from "express-serve-static-core";
+import { Request , Response , NextFunction } from "express";
 import httpException from "@/utils/exceptions/http.exception";
 
 function ErrorMiddleware(error: httpException  ,req: Request, res: Response, next: NextFunction) : void {
