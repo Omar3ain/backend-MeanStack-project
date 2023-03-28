@@ -1,7 +1,7 @@
 import express , { Application } from 'express';
-import mongoose from 'mongoose';
 import Controller from '@/utils/interfaces/controller.interface';
 import ErrorMiddleware from '@/middlewares/error.middleware';
+import initializeDatabaseConnection from '@/config/db';
 import compression from 'compression';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -15,15 +15,14 @@ class App {
     this.expess = express();
     this.port = port;
 
-    //this.initializeDatabaseConnection();
+    this.initializeDatabaseConnection();
     this.initializeMiddleware();
     this.initializeControllers(controllers);
     this.initializeErrorHandling();
   }
   
   private initializeDatabaseConnection() : void {
-    const { MONGO_PATH, DATABASE_NAME } = process.env;
-    mongoose.connect(`${MONGO_PATH}/${DATABASE_NAME}`);
+     initializeDatabaseConnection()
   }
 
   private initializeMiddleware() : void {
