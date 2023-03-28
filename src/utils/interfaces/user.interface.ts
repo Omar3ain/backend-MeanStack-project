@@ -1,4 +1,4 @@
-interface User{
+interface IUser{
     firstName: string,
     lastName: string,
     email: string,
@@ -7,4 +7,4 @@ interface User{
     isAdmin?: boolean
 }
 
-export default User;
+export default IUser;

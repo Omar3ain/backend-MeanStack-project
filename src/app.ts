@@ -6,18 +6,19 @@ import compression from 'compression';
 import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
+import bodyParser from 'body-parser';
 
 class App {
   public express: Application;
   public port :number;
 
-  constructor(controllers : RouteInterface[] , port : number) {
+  constructor(router : RouteInterface , port : number) {
     this.express = express();
     this.port = port;
 
     this.initializeDatabaseConnection();
     this.initializeMiddleware();
-    this.initializeControllers(controllers);
+    this.initializeControllers(router);
     this.initializeErrorHandling();
   }
   
@@ -29,15 +30,13 @@ class App {
     this.express.use(helmet())
     this.express.use(cors());
     this.express.use(morgan('dev'));
-    this.express.use(express.json());
-    this.express.use(express.urlencoded({ extended: true }));
+    this.express.use(bodyParser.json());
+    this.express.use(bodyParser.urlencoded({ extended: true }));
     this.express.use(compression());
   }
 
-  private initializeControllers(controllers : RouteInterface[]) : void {
-    controllers.forEach((controller : RouteInterface) => {
-      this.express.use('/api', controller.router);
-    })
+  private initializeControllers(router : RouteInterface) : void {
+      this.express.use(router.router);
   }
 
   private initializeErrorHandling() : void {

@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 
 interface RouteInterface {
-  path : string;
+  path? : string;
   router : Router;
 }
 
