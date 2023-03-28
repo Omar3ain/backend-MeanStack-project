@@ -1,9 +1,5 @@
+import Category from "@/utils/interfaces/category.interface";
 import { Schema, model } from "mongoose";
-
-interface Category {
-    name: string;
-    creator: Schema.Types.ObjectId;
-}
 
 const categorySchema = new Schema<Category>(
     {
