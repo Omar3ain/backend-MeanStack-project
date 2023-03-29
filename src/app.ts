@@ -7,6 +7,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import bodyParser from 'body-parser';
+import path from 'path';
 
 class App {
   public express: Application;
@@ -32,6 +33,7 @@ class App {
     this.express.use(morgan('dev'));
     this.express.use(bodyParser.json());
     this.express.use(bodyParser.urlencoded({ extended: true }));
+    this.express.use('/uploads', express.static(path.join(__dirname,'../uploads')));
     this.express.use(compression());
   }
 

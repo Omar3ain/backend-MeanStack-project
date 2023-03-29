@@ -14,7 +14,7 @@ class userRouter implements RouteInterface {
     this.upload = multer({
       storage: multer.diskStorage({
         destination: (req: Request, file, cb) => {
-          cb(null, 'uploads/users')
+          cb(null, 'uploads')
         },
         filename: (req: Request, file, cb) => {
           let timeStamp = Date.now();
