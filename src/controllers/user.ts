@@ -28,4 +28,13 @@ const signUp = async (obj: IUser) => {
     }
 }
 
-export default { signUp, login };
+const getUserDetails = async (id : string) => {
+    const user = await User.findById(id);
+    if(user){
+        return user;
+    }else{
+        throw new Error("User doesn't exist!");
+    }
+}
+
+export default { signUp, login , getUserDetails };

@@ -1,7 +1,7 @@
 import {Router , Request , Response , NextFunction} from 'express';
 import RouteInterface from '@/utils/interfaces/router.interface';
 import adminRouter from '@/routes/admin/index'
-import userRouter from '@/routes/user';
+import userRouter from '@/routes/user/user';
 
 
 class mainRouter implements RouteInterface {
