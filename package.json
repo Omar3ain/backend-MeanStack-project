@@ -51,6 +51,7 @@
     "@/routes": "dist/routes",
     "@/utils": "dist/utils",
     "@/config": "dist/config",
-    "@/controllers": "dist/controllers"
+    "@/controllers": "dist/controllers",
+    "@/uploads": "dist/uploads"
   }
 }

@@ -4,7 +4,7 @@ interface IUser{
     email: string,
     password: string,
     avatar: string,
-    books : [],
+    books? : [],
     isAdmin?: boolean
 }
 
