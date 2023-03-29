@@ -16,6 +16,8 @@ const verifyAdmin = async (req: Request, res: Response, next: NextFunction) => {
             if (admin.isAdmin) {
                 (<any>req).admin = admin;
                 next();
+            }else{
+                next(new httpException(401, "You are not an Administrator"));
             }
         }else{
             next(new httpException(401, "Admin doesn't exist, Invalid!"));

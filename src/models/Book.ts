@@ -16,9 +16,8 @@ const bookSchema = new Schema<Book>({
   coverPhoto: { type: String, required: true },
   name: { type: String, required: true },
   authorId: {
-    //type: Schema.Types.ObjectId,
-    //ref: 'Author',
-    type: String,
+    type: Schema.Types.ObjectId,
+    ref: 'Author',
     required: true,
   },
   shelve: {
@@ -27,9 +26,8 @@ const bookSchema = new Schema<Book>({
     default: 'read',
   },
   categoryId: {
-    //type: Schema.Types.ObjectId,
-    //ref: 'Category',
-    type: String,
+    type: Schema.Types.ObjectId,
+    ref: 'Category',
     required: true,
   },
   description: { type: String, required: true },
