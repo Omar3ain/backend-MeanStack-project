@@ -48,7 +48,7 @@ export default {
     remove :async (category: ICategory): Promise<ICategory> => {
         const isAdmin = true; // userController.isAdmin();
         if(isAdmin){
-            const deletedCategory: ICategory = await Category.findOneAndDelete({name: category.name});
+            const deletedCategory: ICategory | null = await Category.findOneAndDelete({name: category.name});
             if(deletedCategory){
                 return deletedCategory;
             }else {
