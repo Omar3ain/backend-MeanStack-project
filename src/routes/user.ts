@@ -4,12 +4,31 @@ import userController from '@/controllers/user'
 import httpException from '@/utils/exceptions/http.exception';
 import multer from 'multer';
 import fs from 'fs';
+import path from 'path';
 
 class userRouter implements RouteInterface {
   public router: Router = Router();
   public upload: multer.Multer;
+  public storage;
   constructor() {
-    this.upload = multer({ dest: 'uploads/' });
+    this.storage = multer.diskStorage({
+      destination: (req : Request , file, cb) => {
+        cb(null, 'uploads/users/')
+      },
+      filename: (req: Request, file, cb) => {
+        let timeStamp = Date.now();
+        cb(null, file.fieldname + "-" + timeStamp + '.' + file.originalname.split('.')[file.originalname.split('.').length -1]); 
+      }
+    });
+    this.upload = multer({ storage : this.storage, 
+      fileFilter: (req: Request, file, cb) => {
+        let ext = path.extname(file.originalname);
+        if(ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg'){
+           return cb(new Error('Only images are allowed!'));
+        }
+        cb(null, true);
+      }
+    });
     this.initializeRoutes()
   }
 
