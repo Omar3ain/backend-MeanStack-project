@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import RouteInterface from '@/utils/interfaces/router.interface';
 import bookController from '@/controllers/book'
 import httpException from '@/utils/exceptions/http.exception';
+import verifyAdmin from '@/middlewares/verifyAdmin'
 import multer from 'multer';
 
 class bookAdminRouter implements RouteInterface {
@@ -14,7 +15,7 @@ class bookAdminRouter implements RouteInterface {
   }
 
   private initializeRoutes = () => {
-    this.router.post('/', this.upload.none(), this.makeBook);
+    this.router.post('/', this.upload.none(),verifyAdmin, this.makeBook);
     //this.router.delete(`${this.path}`, this.upload.none(), this.login);
     //this.router.patch(`${this.path}`, this.upload.none(), this.login);
   }
