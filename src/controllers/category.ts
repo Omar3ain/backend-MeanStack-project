@@ -1,6 +1,8 @@
 import Category from "@/models/Category";
 import User from "@/models/User";
+import Book from "@/models/Book";
 import ICategory from "@/utils/interfaces/category.interface";
+import IBook from "@/utils/interfaces/book.interface";
 import Pagination from "@/utils/interfaces/pagination.interface";
 import mongoose from "mongoose";
 interface FilterCategories {
@@ -100,4 +102,37 @@ export default {
             throw new Error("Category not removed or not found");
         }
     },
+
+    edit: async (categoryName:string ,category: ICategory ): Promise<ICategory> => {
+        // const newCreator = await User.findOne({"_id": new mongoose.Types.ObjectId(category.creator)}).exec();
+        const newCreator = await User.findById(category.creator).exec();
+        if(!newCreator) throw new Error("user not found");
+        const isCategoryNameExist = await Category.findOne({
+            name: category.name
+        }).exec();
+        if(isCategoryNameExist) throw new Error("category name already exists");
+        const updatedCategory: ICategory | null =
+            await Category.findOneAndUpdate({ name: categoryName }, {
+                ...category,
+                updatedAt: new Date().toISOString()
+            });
+        if (updatedCategory) {
+            console.log("Category deleted: " + updatedCategory);
+            return updatedCategory;
+        } else {
+            throw new Error("Category not removed or not found");
+        }
+    },
+
+    getAllBooks: async (categoryName:string): Promise<IBook[]> => {
+        const category = await Category.findOne({ name: categoryName }).exec();
+        if(!category) throw new Error("dosn't exits");
+        const categoryId = category.id;
+
+        const books = await Book.find({
+            categoryId
+        })
+        if(books.length < 1) throw new Error("no books found in this category");
+        return books;
+    }
 };

@@ -19,6 +19,8 @@ class categoryAdminRouter implements RouteInterface {
     this.router.get('/', this.upload.none(),this.getAllCategories);
     this.router.post('/', this.upload.none(),this.addCategory);
     this.router.delete('/:grategoryName', this.upload.none(),this.deleteGategory);
+    this.router.patch('/:grategoryName', this.upload.none(),this.editGategory);
+    this.router.get('/:grategoryName/books', this.upload.none(),this.getAllBooks);
   }
   private getAllCategories = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
@@ -44,6 +46,27 @@ class categoryAdminRouter implements RouteInterface {
     try {
       const category = await categoryController.remove(grategoryName);
       res.status(200).json({ status:201, category });
+    } catch (error: any) {
+      next(new httpException(401, error.message as string));
+    }
+  }
+
+  private editGategory = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+    const {grategoryName} = req.params;
+    const {name, creator} = req.body;
+    try {
+      const category = await categoryController.edit(grategoryName, {name, creator});
+      res.status(200).json({ status:201, category });
+    } catch (error: any) {
+      next(new httpException(401, error.message as string));
+    }
+  }
+
+  private getAllBooks = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+    const {grategoryName} = req.params;
+    try {
+      const books = await categoryController.getAllBooks(grategoryName);
+      res.status(200).json({ status:201, books });
     } catch (error: any) {
       next(new httpException(401, error.message as string));
     }
