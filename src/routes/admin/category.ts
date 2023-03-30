@@ -18,6 +18,7 @@ class categoryAdminRouter implements RouteInterface {
   private initializeRoutes = () => {
     this.router.get('/', this.upload.none(),this.getAllCategories);
     this.router.post('/', this.upload.none(),this.addCategory);
+    this.router.delete('/:grategoryName', this.upload.none(),this.deleteGategory);
   }
   private getAllCategories = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
@@ -32,6 +33,16 @@ class categoryAdminRouter implements RouteInterface {
     const {name, creator} = req.body;
     try {
       const category = await categoryController.add({name, creator});
+      res.status(200).json({ status:201, category });
+    } catch (error: any) {
+      next(new httpException(401, error.message as string));
+    }
+  }
+
+  private deleteGategory = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+    const {grategoryName} = req.params;
+    try {
+      const category = await categoryController.remove(grategoryName);
       res.status(200).json({ status:201, category });
     } catch (error: any) {
       next(new httpException(401, error.message as string));

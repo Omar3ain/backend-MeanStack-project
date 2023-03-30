@@ -1,8 +1,8 @@
-import { Schema } from "mongoose";
+import mongoose from "mongoose";
 
 interface Category {
   name: string;
-  creator: Schema.Types.ObjectId;
+  creator: mongoose.Types.ObjectId;
 }
 
 export default Category;
