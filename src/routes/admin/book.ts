@@ -65,8 +65,7 @@ class bookAdminRouter implements RouteInterface {
     const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : ""; 
     try {
       const id : string = req.params.id;
-      req.body.coverPhoto = coverPhoto   
-      
+      if(coverPhoto !== "") req.body.coverPhoto = coverPhoto;
       const book = await bookController.editBook(id, req.body); 
       
       res.status(200).json({ status: 'Updated successfully' , updatedBook: book });
