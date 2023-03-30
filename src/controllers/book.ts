@@ -28,9 +28,12 @@ const editBook = async (id : string , obj : BookUpdate)=> {
   try {
     const beforeUpdateBook = await getBookDetails(id)
     const updatedBook = await Book.findByIdAndUpdate({_id :id}, obj,{ new: true, runValidators: true }).exec();
-    const filepath = beforeUpdateBook?.coverPhoto.split('/')[3]+'/'+beforeUpdateBook?.coverPhoto.split('/')[4] + '/'+beforeUpdateBook?.coverPhoto.split('/')[5];
-    if (fs.existsSync(filepath)) {
-      fs.unlinkSync(filepath);
+
+    if(obj.coverPhoto && beforeUpdateBook && beforeUpdateBook.coverPhoto !== obj.coverPhoto){
+      const filepath = beforeUpdateBook?.coverPhoto.split('/')[3]+'/'+beforeUpdateBook?.coverPhoto.split('/')[4] + '/'+beforeUpdateBook?.coverPhoto.split('/')[5];
+      if (fs.existsSync(filepath)) {
+        fs.unlinkSync(filepath);
+      }
     }
     return updatedBook;
   } catch (err) {

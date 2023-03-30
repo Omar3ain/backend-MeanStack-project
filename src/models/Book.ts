@@ -13,7 +13,7 @@ const reviewSchema = new Schema<Review>({
 });
 
 const bookSchema = new Schema<iBook>({
-  coverPhoto: { type: String, required: true },
+  coverPhoto: { type: String },
   name: { type: String, required: true },
   authorId: {
     type: Schema.Types.ObjectId,
