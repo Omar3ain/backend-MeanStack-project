@@ -1,4 +1,4 @@
-import Book from '@/utils/interfaces/book.interface';
+import iBook from '@/utils/interfaces/book.interface';
 import Review from '@/utils/interfaces/review.interface';
 import { Schema, model } from 'mongoose';
 
@@ -12,8 +12,8 @@ const reviewSchema = new Schema<Review>({
   comment: { type: String, required: true },
 });
 
-const bookSchema = new Schema<Book>({
-  coverPhoto: { type: String, required: true },
+const bookSchema = new Schema<iBook>({
+  coverPhoto: { type: String },
   name: { type: String, required: true },
   authorId: {
     type: Schema.Types.ObjectId,
@@ -22,8 +22,8 @@ const bookSchema = new Schema<Book>({
   },
   shelve: {
     type: String,
-    enum: ['read', 'want_to_read', 'currently_reading'],
-    default: 'read',
+    enum: ['read', 'want_to_read', 'currently_reading' , 'none'],
+    default: 'none',
   },
   categoryId: {
     type: Schema.Types.ObjectId,
@@ -34,4 +34,4 @@ const bookSchema = new Schema<Book>({
   reviews: {type : [reviewSchema] ,default: []},
 },{ timestamps: true });
 
-export default model<Book>('Book', bookSchema);
+export default model<iBook>('Book', bookSchema);

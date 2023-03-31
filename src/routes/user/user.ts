@@ -36,16 +36,19 @@ class userRouter implements RouteInterface {
     this.router.post('/register', this.upload.single("avatar"), this.register);
     this.router.post('/login', this.upload.none(), this.login);
     this.router.get('/:id', verifyAuth, this.getUser);
+    this.router.patch('/', verifyAuth, this.upload.single("avatar"), this.update);
+
   }
   private register = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     const { firstName, lastName, email, password } = req.body;
     const avatar = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
+    const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";    
     try {
       const userToken = await userController.signUp({ firstName, lastName, email, password, avatar });
       res.status(200).json({ token: userToken });
     } catch (error: any) {
       try {
-        fs.unlinkSync(avatar);
+        fs.unlinkSync(filePath);
       } catch (error) {
         console.log(error);
       }
@@ -72,6 +75,19 @@ class userRouter implements RouteInterface {
     }
   }
 
+  private update = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+    const avatar = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
+    const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : ""; 
+    try {
+      const id : string = (<any>req).user._id;
+      if(avatar !== "") req.body.avatar = avatar;
+      const user = await userController.editUser(id, req.body);
+      res.status(200).json({ status: 'Updated successfully' , updatedUser: user });
+    } catch (error: any) {
+      fs.unlinkSync(filePath);
+      next(new httpException(401, error.message as string));
+    }
+  }
 }
 
 export default userRouter;
