@@ -1,12 +1,14 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import RouteInterface from '@/utils/interfaces/router.interface';
-import bookController from '@/controllers/book'
+import bookController from '@/controllers/book';
 import httpException from '@/utils/exceptions/http.exception';
-import verifyAdmin from '@/middlewares/verifyAdmin'
+import verifyAdmin from '@/middlewares/verifyAdmin';
+import validationMiddleware from '@/middlewares/validation.middleware';
+import validate from '@/utils/validations/book/schema';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
-
+//validationMiddleware(validate.login)
 class bookAdminRouter implements RouteInterface {
   public router: Router = Router();
 
@@ -34,9 +36,9 @@ class bookAdminRouter implements RouteInterface {
   }
 
   private initializeRoutes = () => {
-    this.router.post('/', verifyAdmin, this.upload.single("coverPhoto"), this.makeBook);
+    this.router.post('/', verifyAdmin, this.upload.single("coverPhoto"),validationMiddleware(validate.createBook), this.makeBook);
     this.router.delete('/:id', verifyAdmin, this.deleteBook);
-    this.router.patch(`/:id`, verifyAdmin, this.upload.single("coverPhoto"), this.update);
+    this.router.patch(`/:id`, verifyAdmin, this.upload.single("coverPhoto"),validationMiddleware(validate.updateBook), this.update);
   }
   private makeBook = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     const coverPhoto = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
