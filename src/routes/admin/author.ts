@@ -59,12 +59,12 @@ class AuthorAdminRouter implements RouteInterface {
         const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
         try {
             const id = req.params.id;
-            const { firstName, lastName, dob } = req.body;
-            const updatedAuthor = await authorController.updateAuthor(id, firstName, lastName, dob, photo);
+            if(photo !== "") req.body.photo = photo;
+            const updatedAuthor = await authorController.updateAuthor(id , req.body);
             res.status(200).json(updatedAuthor);
         } catch (err: any) {
             fs.unlinkSync(filePath);
-            next(new httpException(401, err.massage as string));
+            next(new httpException(401, "Cant edit the Author please try again."));
         }
 
     };

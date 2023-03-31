@@ -1,5 +1,5 @@
 import Author from "@/models/Author";
-import IAuthor from "@/utils/interfaces/author.interface";
+import IAuthor, {AuthorUpdate} from "@/utils/interfaces/author.interface";
 import fs from 'fs';
 
 const createAuthor = async (obj: IAuthor, photo: string) => {
@@ -34,28 +34,21 @@ const getAuthorById = async (id: string) => {
     }
 }
 
-const updateAuthor = async (authorId: string, firstName: string, lastName: string, dob: Date, photo: string) => {
+const updateAuthor = async (authorId: string, obj :AuthorUpdate) => {
     try {
-
-        console.log(getAuthorById(authorId))
         const beforUpdate = await getAuthorById(authorId)
         const updatedAuthor = await Author.findByIdAndUpdate(
             authorId,
-            { firstName, lastName, dob, photo },
+            obj,
             { new: true },
         );
-        if (photo && beforUpdate && beforUpdate.photo != photo) {
+        if (obj.photo && beforUpdate && beforUpdate.photo != obj.photo) {
             const filepath = beforUpdate?.photo.split('/')[3] + '/' + beforUpdate?.photo.split('/')[4] + '/' + beforUpdate?.photo.split('/')[5];
             if (fs.existsSync(filepath)) {
                 fs.unlinkSync(filepath);
             }
         }
-        if (updatedAuthor) {
-            return updatedAuthor;
-        }
-        else {
-            throw new Error("author dosn't exist")
-        }
+        return updatedAuthor;
     }
     catch (error) {
         throw new Error(error as string);
@@ -73,6 +66,8 @@ const deleteAuthorById = async (id: string) => {
         return deletedauthor;
     }
     catch (error) {
+
+        
         throw new Error(error as string);
     }
 }
