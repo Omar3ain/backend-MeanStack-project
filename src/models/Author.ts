@@ -7,6 +7,6 @@ const AuthorSchema = new Schema<Author>({
     lastName: { type: String },
     dob: { type: Date },
     photo: { type: String }
-})
+}, { timestamps: true })
 
 export default model<Author>('Author', AuthorSchema);
