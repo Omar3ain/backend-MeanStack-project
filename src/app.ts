@@ -1,51 +1,52 @@
 import express , { Application } from 'express';
-import Controller from '@/utils/interfaces/controller.interface';
+import RouteInterface from '@/utils/interfaces/router.interface';
 import ErrorMiddleware from '@/middlewares/error.middleware';
 import initializeDatabaseConnection from '@/config/db';
 import compression from 'compression';
 import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
+import bodyParser from 'body-parser';
+import path from 'path';
 
 class App {
-  public expess: Application;
+  public express: Application;
   public port :number;
 
-  constructor(controllers : Controller[] , port : number) {
-    this.expess = express();
+  constructor(router : RouteInterface , port : number) {
+    this.express = express();
     this.port = port;
 
     this.initializeDatabaseConnection();
     this.initializeMiddleware();
-    this.initializeControllers(controllers);
+    this.initializeControllers(router);
     this.initializeErrorHandling();
   }
   
   private initializeDatabaseConnection() : void {
-     initializeDatabaseConnection()
+    initializeDatabaseConnection()
   }
 
   private initializeMiddleware() : void {
-    this.expess.use(helmet())
-    this.expess.use(cors());
-    this.expess.use(morgan('dev'));
-    this.expess.use(express.json());
-    this.expess.use(express.urlencoded({ extended: true }));
-    this.expess.use(compression());
+    this.express.use(helmet())
+    this.express.use(cors());
+    this.express.use(morgan('dev'));
+    this.express.use(bodyParser.json());
+    this.express.use(bodyParser.urlencoded({ extended: true }));
+    this.express.use('/uploads', express.static(path.join(__dirname,'../uploads')));
+    this.express.use(compression());
   }
 
-  private initializeControllers(controllers : Controller[]) : void {
-    controllers.forEach((controller : Controller) => {
-      this.expess.use('/api', controller.router);
-    })
+  private initializeControllers(router : RouteInterface) : void {
+      this.express.use(router.router);
   }
 
   private initializeErrorHandling() : void {
-    this.expess.use(ErrorMiddleware);
+    this.express.use(ErrorMiddleware);
   }
 
   public listen() : void {
-    this.expess.listen(this.port, () => {
+    this.express.listen(this.port, () => {
       console.log(`App listening on port http://localhost:${this.port}`);
     })
   }
