@@ -24,12 +24,6 @@ const userRegisterSchema = Joi.object({
     }
     return value;
   }),
-  avatar: Joi.object({
-    fieldname: Joi.string().required(),
-    originalname: Joi.string().required(),
-    mimetype: Joi.string().valid('image/jpeg', 'image/png', 'image/jpg').required(),
-    size: Joi.number().max(5 * 1024 * 1024).required(),
-  }).required(),
 });
 
 
@@ -47,11 +41,10 @@ const userLoginSchema = Joi.object({
 });
 
 const userEditSchema = Joi.object({
-  firstName: userRegisterSchema.extract('firstName'),
-  lastName: userRegisterSchema.extract('lastName'),
-  email: userRegisterSchema.extract('email'),
+  firstName: userRegisterSchema.extract('firstName').optional(),
+  lastName: userRegisterSchema.extract('lastName').optional(),
+  email: userRegisterSchema.extract('email').optional(),
   password: userRegisterSchema.extract('password').optional(),
-  avatar: userRegisterSchema.extract('avatar').optional(),
 });
 
 
