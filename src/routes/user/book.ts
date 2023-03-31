@@ -6,6 +6,7 @@ import verifyAuth from '@/middlewares/verifyUser';
 import CustomRequest from '@/utils/interfaces/request.interface';
 import multer from 'multer';
 
+import Pagination from '@/utils/interfaces/pagination.interface';
 
 class bookRouter implements RouteInterface {
   public router: Router = Router();
@@ -16,14 +17,15 @@ class bookRouter implements RouteInterface {
   }
 
   private initializeRoutes = () => {
-    this.router.get('/', this.getBooks);
+    this.router.get('', this.getBooks);
     this.router.get('/:id', this.getBook);
     this.router.patch('/:id/shelve',verifyAuth , this.upload.none(),this.changeBookShelve);
   }
 
   private getBooks = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
-      const books = await bookController.getAllBooks();
+      const {skip, limit} : Pagination = req.query
+      const books = await bookController.getAllBooks({skip, limit});
       res.status(200).json(books);
     } catch (error: any) {
       next(new httpException(401, error.message as string));
