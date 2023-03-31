@@ -4,6 +4,8 @@ import RouteInterface from '@/utils/interfaces/router.interface';
 import categoryController from '@/controllers/category';
 import httpException from '@/utils/exceptions/http.exception';
 import verifyAdmin from '@/middlewares/verifyAdmin';
+import validationMiddleware from '@/middlewares/validation.middleware';
+import categoryValidator from '@/utils/validations/category/schema';
 
 class categoryAdminRouter implements RouteInterface {
   public router: Router = Router();
@@ -16,7 +18,7 @@ class categoryAdminRouter implements RouteInterface {
 
   private initializeRoutes = () => {
     this.router.get('/', verifyAdmin, this.upload.none(),this.getAllCategories);
-    this.router.post('/', this.upload.none(),this.addCategory);
+    this.router.post('/', verifyAdmin,this.upload.none(), validationMiddleware(categoryValidator.createCategory),this.addCategory);
     this.router.delete('/:grategoryName', verifyAdmin,this.upload.none(),this.deleteGategory);
     this.router.patch('/:grategoryName', verifyAdmin,this.upload.none(),this.editGategory);
     this.router.get('/:grategoryName/books', verifyAdmin, this.upload.none(),this.getAllBooks);

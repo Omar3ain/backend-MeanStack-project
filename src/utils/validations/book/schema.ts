@@ -18,7 +18,7 @@ const createBook =  joi.object({
 });
 
 const updateBook =  joi.object().keys({
-  coverPhoto : createBook.extract('firstName'),
+  coverPhoto : createBook.extract('coverPhoto'),
   name : createBook.extract('name').optional(),
   shelve : createBook.extract('shelve'),
   description: createBook.extract('description').optional(),
