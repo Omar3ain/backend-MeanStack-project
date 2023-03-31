@@ -4,8 +4,11 @@ import httpException from '@/utils/exceptions/http.exception';
 import RouteInterface from '@/utils/interfaces/router.interface';
 import fs from 'fs';
 import { Router, Request, Response, NextFunction } from 'express';
-import {Multer} from 'multer';
+import { Multer } from 'multer';
 import formUpload from '@/middlewares/form.middleware';
+import validationMiddleware from '@/middlewares/validation.middleware';
+import validate from '@/utils/validations/author/Schema'
+
 
 class AuthorAdminRouter implements RouteInterface {
     public router: Router = Router();
@@ -18,9 +21,9 @@ class AuthorAdminRouter implements RouteInterface {
     }
 
     private initializeRoutes = () => {
-        this.router.post('/', verifyAdmin,this.upload.single("photo"), this.createAuthor)
-        this.router.patch('/:id', verifyAdmin,this.upload.single("photo"), this.editAuthor)
-        this.router.delete('/:id', verifyAdmin,this.upload.single("photo"), this.deleteAuthor)
+        this.router.post('/', verifyAdmin, this.upload.single("photo"), validationMiddleware(validate.createAuthorSchema), this.createAuthor)
+        this.router.patch('/:id', verifyAdmin, this.upload.single("photo"), validationMiddleware(validate.editAuthorSchema), this.editAuthor)
+        this.router.delete('/:id', verifyAdmin, this.upload.single("photo"), this.deleteAuthor)
     }
     private createAuthor = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
 
@@ -42,8 +45,8 @@ class AuthorAdminRouter implements RouteInterface {
         const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
         try {
             const id = req.params.id;
-            if(photo !== "") req.body.photo = photo;
-            const updatedAuthor = await authorController.updateAuthor(id , req.body);
+            if (photo !== "") req.body.photo = photo;
+            const updatedAuthor = await authorController.updateAuthor(id, req.body);
             res.status(200).json(updatedAuthor);
         } catch (err: any) {
             fs.unlinkSync(filePath);
