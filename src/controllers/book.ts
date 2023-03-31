@@ -1,7 +1,7 @@
 import Book from '@/models/Book'
 import iBook , { BookUpdate } from '@/utils/interfaces/book.interface';
 import fs from 'fs';
-
+import  { editShelve }  from '@/controllers/user'
 const createBook = async (obj: iBook , coverPhoto : string) => {
   const {  name, authorId, description, categoryId } = obj;
   try {
@@ -59,14 +59,23 @@ const getAllBooks = async () => {
 const getBookDetails = async (id: string) => {
   try {
     const book = await Book.findById(id);
-    if(book){
       return book;
-    }else{
-      throw new Error("Book doesn't exist!");
-    }
   } catch (error) {
     throw new Error(error as string);
   }
 }
 
-export default { createBook, deleteBook,editBook ,getAllBooks, getBookDetails};
+const editBookShelve = async (bookid : string , status : "read" | "want_to_read" | "currently_reading" | "none" , userId : string) =>{
+  try{
+    const book = await getBookDetails(bookid);
+    if(book){
+      book!.shelve = status;
+      return editShelve(userId, book);
+    }
+  }catch(error){
+    throw new Error(error as string);
+  }
+}
+
+
+export default { createBook, deleteBook,editBook ,getAllBooks, getBookDetails ,editBookShelve};

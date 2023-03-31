@@ -66,4 +66,13 @@ const getUserBooks = async (id : string , obj: UserBookQuery ) => {
     }
 }
 
-export default { signUp, login, getUserDetails, editUser, getUserBooks };
+export const editShelve = async (id :string, obj:iBook ) => {
+    try {
+    const updatedUser = await User.findByIdAndUpdate({ _id: id },{ $push : {books :obj } }, { new: true, runValidators: true }).exec();
+    return updatedUser;
+    }catch(error) {
+        throw new Error(error as string);
+    }
+}
+
+export default { signUp, login, getUserDetails, editUser, getUserBooks ,editShelve};
