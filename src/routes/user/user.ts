@@ -6,6 +6,8 @@ import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import verifyAuth from '@/middlewares/verifyUser';
+import validationMiddleware from '@/middlewares/validation.middleware';
+import validate from '@/utils/validations/user/schema';
 
 class userRouter implements RouteInterface {
   public router: Router = Router();
@@ -33,16 +35,16 @@ class userRouter implements RouteInterface {
   }
 
   private initializeRoutes = () => {
-    this.router.post('/register', this.upload.single("avatar"), this.register);
-    this.router.post('/login', this.upload.none(), this.login);
+    this.router.post('/register', this.upload.single("avatar"),  validationMiddleware(validate.userRegisterSchema), this.register);
+    this.router.post('/login',  this.upload.none(), validationMiddleware(validate.userLoginSchema), this.login);
     this.router.get('/:id', verifyAuth, this.getUser);
-    this.router.patch('/', verifyAuth, this.upload.single("avatar"), this.update);
+    this.router.patch('/', verifyAuth, this.upload.single("avatar"),  validationMiddleware(validate.userEditSchema), this.update);
 
   }
   private register = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     const { firstName, lastName, email, password } = req.body;
     const avatar = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
-    const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";    
+    const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
     try {
       const userToken = await userController.signUp({ firstName, lastName, email, password, avatar });
       res.status(200).json({ token: userToken });
@@ -70,19 +72,19 @@ class userRouter implements RouteInterface {
     try {
       const user = await userController.getUserDetails(req.params.id);
       res.status(200).json(user);
-    } catch (error : any) {
+    } catch (error: any) {
       next(new httpException(401, error.message as string));
     }
   }
 
   private update = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     const avatar = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
-    const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : ""; 
+    const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
     try {
-      const id : string = (<any>req).user._id;
-      if(avatar !== "") req.body.avatar = avatar;
+      const id: string = (<any>req).user._id;
+      if (avatar !== "") req.body.avatar = avatar;
       const user = await userController.editUser(id, req.body);
-      res.status(200).json({ status: 'Updated successfully' , updatedUser: user });
+      res.status(200).json({ status: 'Updated successfully', updatedUser: user });
     } catch (error: any) {
       fs.unlinkSync(filePath);
       next(new httpException(401, error.message as string));
