@@ -38,7 +38,7 @@ class bookAdminRouter implements RouteInterface {
   private initializeRoutes = () => {
     this.router.post('/', verifyAdmin, this.upload.single("coverPhoto"),validationMiddleware(validate.createBook), this.makeBook);
     this.router.delete('/:id', verifyAdmin, this.deleteBook);
-    this.router.patch(`/:id`, verifyAdmin, this.upload.single("coverPhoto"),validationMiddleware(validate.updateBook), this.update);
+    this.router.patch(`/:id`, verifyAdmin  , this.upload.single("coverPhoto"), validationMiddleware(validate.updateBook),this.update);
   }
   private makeBook = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     const coverPhoto = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
