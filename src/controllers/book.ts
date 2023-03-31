@@ -1,5 +1,6 @@
 import Book from '@/models/Book'
 import iBook , { BookUpdate } from '@/utils/interfaces/book.interface';
+import Pagination from '@/utils/interfaces/pagination.interface';
 import fs from 'fs';
 
 const createBook = async (obj: iBook , coverPhoto : string) => {
@@ -42,10 +43,13 @@ const editBook = async (id : string , obj : BookUpdate)=> {
 
 // @desc get all books
 // @access public
-
-const getAllBooks = async () => {
+// books?shelve=read&skip=0&limit=10
+const getAllBooks = async (obj : Pagination) => {
   try {
-    const books = await Book.find();
+    const books = await Book.find()
+    .skip(Number(obj.skip) || 0)
+    .limit(Number(obj.limit) || 10)
+    .exec();
     return books;
   } catch (error) {
     throw new Error(error as string);
