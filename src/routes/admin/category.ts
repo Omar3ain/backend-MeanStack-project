@@ -66,6 +66,7 @@ class categoryAdminRouter implements RouteInterface {
     const {grategoryName} = req.params;
     try {
       const books = await categoryController.getAllBooks(grategoryName);
+      if(books.length < 1) next(new httpException(401, "no books in this category"));
       res.status(200).json({ status:201, books });
     } catch (error: any) {
       next(new httpException(401, error.message as string));
