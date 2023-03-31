@@ -16,11 +16,11 @@ class categoryAdminRouter implements RouteInterface {
   }
 
   private initializeRoutes = () => {
-    this.router.get('/', this.upload.none(),this.getAllCategories);
+    this.router.get('/', verifyAdmin, this.upload.none(),this.getAllCategories);
     this.router.post('/', this.upload.none(),this.addCategory);
-    this.router.delete('/:grategoryName', this.upload.none(),this.deleteGategory);
-    this.router.patch('/:grategoryName', this.upload.none(),this.editGategory);
-    this.router.get('/:grategoryName/books', this.upload.none(),this.getAllBooks);
+    this.router.delete('/:grategoryName', verifyAdmin,this.upload.none(),this.deleteGategory);
+    this.router.patch('/:grategoryName', verifyAdmin,this.upload.none(),this.editGategory);
+    this.router.get('/:grategoryName/books', verifyAdmin, this.upload.none(),this.getAllBooks);
   }
   private getAllCategories = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
