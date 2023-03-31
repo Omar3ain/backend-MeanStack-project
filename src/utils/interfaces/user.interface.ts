@@ -17,4 +17,11 @@ export interface IUserUpdate{
     books? : [],
     isAdmin?: boolean
 }
+
+export interface UserBookQuery {
+    shelve ?: string
+    skip ?: string
+    limit ?: string
+  }
+
 export default IUser;

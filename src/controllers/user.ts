@@ -1,8 +1,10 @@
-import User from "@/models/User"
-import IUser, { IUserUpdate } from "@/utils/interfaces/user.interface"
-import createToken from "@/utils/token/creation";
-import { compare, hash } from "bcrypt";
 import fs from 'fs';
+import { compare, hash } from "bcrypt";
+import User from "@/models/User";
+import iBook from "@/utils/interfaces/book.interface";
+import Pagination from '@/utils/interfaces/pagination.interface';
+import IUser, { IUserUpdate , UserBookQuery} from "@/utils/interfaces/user.interface";
+import createToken from "@/utils/token/creation";
 
 const login = async (obj: IUser) => {
     const { email, password } = obj;
@@ -53,4 +55,15 @@ const editUser = async (id: string, obj: IUserUpdate) => {
     }
 }
 
-export default { signUp, login, getUserDetails, editUser };
+const getUserBooks = async (id : string , obj: UserBookQuery ) => {
+    try {
+        const user = await getUserDetails(id);
+        const books = user.books?.filter((book : iBook) => book.shelve === obj.shelve);
+        const paginatedBooks = books!.slice(Number(obj.skip), Number(obj.skip) + Number(obj.limit));
+        return paginatedBooks;
+    } catch (error) {
+        throw new Error(error as string);
+    }
+}
+
+export default { signUp, login, getUserDetails, editUser, getUserBooks };
