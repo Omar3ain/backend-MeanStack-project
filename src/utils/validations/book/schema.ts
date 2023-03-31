@@ -1,8 +1,9 @@
 import joi from 'joi';
 
-const validShelveValues : string[] = ['read', 'want_to_read', 'currently_reading' , 'none'];
+//const validShelveValues : string[] = [];
 
 const reviews = joi.object({
+  userId: joi.string().required(),
   rating: joi.number().required(),
   comment: joi.string().required()
 });
@@ -10,7 +11,9 @@ const reviews = joi.object({
 const createBook =  joi.object().keys({
   coverPhoto : joi.string(),
   name : joi.string().min(5).max(20).required(),
-  shelve : joi.string().valid(validShelveValues),
+  authorId :joi.string().required(),
+  categoryId : joi.string().required(),
+  shelve : joi.string().valid('read', 'want_to_read', 'currently_reading' , 'none'),
   description: joi.string().required(),
   reviews : joi.array().items(reviews)
 });
@@ -18,7 +21,7 @@ const createBook =  joi.object().keys({
 const updateBook =  joi.object().keys({
   coverPhoto : joi.string(),
   name : joi.string().min(5).max(20),
-  shelve : joi.string().valid(validShelveValues),
+  shelve : joi.string().valid('read', 'want_to_read', 'currently_reading' , 'none'),
   description: joi.string(),
   reviews : joi.array().items(reviews)
 });
