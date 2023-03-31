@@ -53,35 +53,6 @@ export default {
             .exec();
         return categories;
     },
-
-    // getByName: async (name: string) => {
-    //     const categories: ICategory[] | null = await Category.find({
-    //         name: { $regex: ".*" + name + ".*" },
-    //     }).exec();
-    //     // const categories: ICategory[] | null = await Category.find({name}).exec();
-    //     if (categories) {
-    //         return categories;
-    //     } else {
-    //         throw new Error("Category not found");
-    //     }
-    // },
-
-    // getAllByCreator: async (creator: string) => {
-    //     const user = await User.findOne({ name: creator }).exec();
-    //     if (user) {
-    //         const categories: ICategory[] = await Category.find({
-    //             creator,
-    //         }).exec();
-    //         if (categories.length > 0) {
-    //             return categories;
-    //         } else {
-    //             throw new Error("the user does not have any category");
-    //         }
-    //     } else {
-    //         throw new Error("user doesn't exist");
-    //     }
-    // },
-
     add: async (category: ICategory): Promise<ICategory> => {
         category.creator = new mongoose.Types.ObjectId(category.creator);
         const newCategory: ICategory = await Category.create(category);

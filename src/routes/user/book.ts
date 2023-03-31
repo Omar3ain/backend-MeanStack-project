@@ -12,7 +12,6 @@ class bookRouter implements RouteInterface {
   private initializeRoutes = () => {
     this.router.get('/', this.getBooks);
     this.router.get('/:id', this.getBook);
-    console.log("book public")
   }
 
   private getBooks = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
