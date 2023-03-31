@@ -4,34 +4,17 @@ import httpException from '@/utils/exceptions/http.exception';
 import RouteInterface from '@/utils/interfaces/router.interface';
 import fs from 'fs';
 import { Router, Request, Response, NextFunction } from 'express';
-import multer from 'multer';
-import path from 'path';
+import {Multer} from 'multer';
+import formUpload from '@/middlewares/form.middleware';
 
 class AuthorAdminRouter implements RouteInterface {
     public router: Router = Router();
-    public upload!: multer.Multer;
+    public upload!: Multer;
 
     constructor() {
 
-        this.upload = multer({
-            storage: multer.diskStorage({
-                destination: (req: Request, file, cb) => {
-                    cb(null, 'uploads/authors')
-                },
-                filename: (req: Request, file, cb) => {
-                    let timeStamp = Date.now();
-                    cb(null, file.originalname.split('.')[0] + "-" + timeStamp + '.' + file.originalname.split('.')[file.originalname.split('.').length - 1]);
-                }
-            }),
-            fileFilter: (req: Request, file, cb) => {
-                let ext = path.extname(file.originalname);
-                if (ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
-                    return cb(new Error('Only images are allowed!'));
-                }
-                cb(null, true);
-            }
-        });
-        this.initializeRoutes()
+        this.upload = formUpload('uploads/authors');
+        this.initializeRoutes();
     }
 
     private initializeRoutes = () => {

@@ -2,35 +2,18 @@ import { Router, Request, Response, NextFunction } from 'express';
 import RouteInterface from '@/utils/interfaces/router.interface';
 import userController from '@/controllers/user'
 import httpException from '@/utils/exceptions/http.exception';
-import multer from 'multer';
+import {Multer} from 'multer';
 import fs from 'fs';
-import path from 'path';
 import verifyAuth from '@/middlewares/verifyUser';
 import validationMiddleware from '@/middlewares/validation.middleware';
 import validate from '@/utils/validations/user/schema';
+import formUpload from '@/middlewares/form.middleware';
 
 class userRouter implements RouteInterface {
   public router: Router = Router();
-  public upload: multer.Multer;
+  public upload: Multer;
   constructor() {
-    this.upload = multer({
-      storage: multer.diskStorage({
-        destination: (req: Request, file, cb) => {
-          cb(null, 'uploads/users')
-        },
-        filename: (req: Request, file, cb) => {
-          let timeStamp = Date.now();
-          cb(null, file.originalname.split('.')[0] + "-" + timeStamp + '.' + file.originalname.split('.')[file.originalname.split('.').length - 1]);
-        }
-      }),
-      fileFilter: (req: Request, file, cb) => {
-        let ext = path.extname(file.originalname);
-        if (ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
-          return cb(new Error('Only images are allowed!'));
-        }
-        cb(null, true);
-      }
-    });
+    this.upload = formUpload('uploads/users')
     this.initializeRoutes()
   }
 

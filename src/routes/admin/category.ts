@@ -1,10 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import RouteInterface from '@/utils/interfaces/router.interface';
-import categoryController from '@/controllers/category'
-import httpException from '@/utils/exceptions/http.exception';
-import verifyAdmin from '@/middlewares/verifyAdmin'
 import multer from 'multer';
-import user from '@/controllers/user';
+import RouteInterface from '@/utils/interfaces/router.interface';
+import categoryController from '@/controllers/category';
+import httpException from '@/utils/exceptions/http.exception';
+import verifyAdmin from '@/middlewares/verifyAdmin';
 
 class categoryAdminRouter implements RouteInterface {
   public router: Router = Router();

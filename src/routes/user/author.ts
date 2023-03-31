@@ -2,32 +2,11 @@ import { Router, Request, Response, NextFunction } from 'express';
 import RouteInterface from '@/utils/interfaces/router.interface';
 import authorController from '@/controllers/author';
 import httpException from '@/utils/exceptions/http.exception';
-import path from 'path';
-import multer from 'multer';
 
 class authorRouter implements RouteInterface {
     public router: Router = Router();
-    upload: multer.Multer;
     constructor() {
-        this.upload = multer({
-            storage: multer.diskStorage({
-                destination: (req: Request, file, cb) => {
-                    cb(null, 'uploads/users')
-                },
-                filename: (req: Request, file, cb) => {
-                    let timeStamp = Date.now();
-                    cb(null, file.originalname.split('.')[0] + "-" + timeStamp + '.' + file.originalname.split('.')[file.originalname.split('.').length - 1]);
-                }
-            }),
-            fileFilter: (req: Request, file, cb) => {
-                let ext = path.extname(file.originalname);
-                if (ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
-                    return cb(new Error('Only images are allowed!'));
-                }
-                cb(null, true);
-            }
-        });
-        this.initializeRoutes()
+        this.initializeRoutes();
     }
     private initializeRoutes = () => {
         this.router.get('/', this.getAuthors);

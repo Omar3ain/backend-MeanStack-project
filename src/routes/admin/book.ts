@@ -5,34 +5,17 @@ import httpException from '@/utils/exceptions/http.exception';
 import verifyAdmin from '@/middlewares/verifyAdmin';
 import validationMiddleware from '@/middlewares/validation.middleware';
 import validate from '@/utils/validations/book/schema';
-import multer from 'multer';
+import {Multer} from 'multer';
 import fs from 'fs';
-import path from 'path';
+import formUpload from '@/middlewares/form.middleware';
 //validationMiddleware(validate.login)
 class bookAdminRouter implements RouteInterface {
   public router: Router = Router();
 
-  public upload: multer.Multer;
+  public upload: Multer;
   constructor() {
-    this.upload = multer({
-      storage: multer.diskStorage({
-        destination: (req: Request, file, cb) => {
-          cb(null, 'uploads/books')
-        },
-        filename: (req: Request, file, cb) => {
-          let timeStamp = Date.now();
-          cb(null, file.originalname.split('.')[0] + "-" + timeStamp + '.' + file.originalname.split('.')[file.originalname.split('.').length - 1]);
-        }
-      }),
-      fileFilter: (req: Request, file, cb) => {
-        let ext = path.extname(file.originalname);
-        if (ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
-          return cb(new Error('Only images are allowed!'));
-        }
-        cb(null, true);
-      }
-    });
-    this.initializeRoutes()
+    this.upload = formUpload('uploads/books');
+    this.initializeRoutes();
   }
 
   private initializeRoutes = () => {
