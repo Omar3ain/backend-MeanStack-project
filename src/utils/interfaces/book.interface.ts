@@ -11,6 +11,7 @@ export default interface iBook {
   reviews: Review[];
 }
 export interface BookUpdate {
+  _id?: string;
   coverPhoto?: string;
   name?: string;
   authorId?: string;

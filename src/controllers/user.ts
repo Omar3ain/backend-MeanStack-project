@@ -1,10 +1,11 @@
 import fs from 'fs';
 import { compare, hash } from "bcrypt";
 import User from "@/models/User";
-import iBook from "@/utils/interfaces/book.interface";
+import iBook, { BookUpdate } from "@/utils/interfaces/book.interface";
 import Pagination from '@/utils/interfaces/pagination.interface';
 import IUser, { IUserUpdate , UserBookQuery} from "@/utils/interfaces/user.interface";
 import createToken from "@/utils/token/creation";
+import strictTransportSecurity from 'helmet/dist/types/middlewares/strict-transport-security';
 
 const login = async (obj: IUser) => {
     const { email, password } = obj;
@@ -30,7 +31,7 @@ const signUp = async (obj: IUser) => {
     }
 }
 
-const getUserDetails = async (id: string) => {
+export const getUserDetails = async (id: string) => {
     const user = await User.findById(id);
     if (user) {
         return user;
@@ -70,6 +71,15 @@ export const editShelve = async (id :string, obj:iBook ) => {
     try {
     const updatedUser = await User.findByIdAndUpdate({ _id: id },{ $push : {books :obj } }, { new: true, runValidators: true }).exec();
     return updatedUser;
+    }catch(error) {
+        throw new Error(error as string);
+    }
+}
+
+export const updateBookInUser = async (id: string, obj: any) => {
+    try {
+        const updatedUser = await User.updateOne({ _id: id , 'books._id' : obj._id},{$set : {'books.$.shelve': obj.shelve}} , { new: true, runValidators: true });
+        return updatedUser;
     }catch(error) {
         throw new Error(error as string);
     }

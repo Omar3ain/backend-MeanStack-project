@@ -1,8 +1,11 @@
 import Book from '@/models/Book'
+import fs from 'fs';
+
 import iBook , { BookUpdate } from '@/utils/interfaces/book.interface';
 import Pagination from '@/utils/interfaces/pagination.interface';
-import fs from 'fs';
-import  { editShelve }  from '@/controllers/user'
+import  { editShelve, getUserDetails, updateBookInUser }  from '@/controllers/user';
+
+
 const createBook = async (obj: iBook , coverPhoto : string) => {
   const {  name, authorId, description, categoryId } = obj;
   try {
@@ -72,9 +75,19 @@ const getBookDetails = async (id: string) => {
 const editBookShelve = async (bookid : string , status : "read" | "want_to_read" | "currently_reading" | "none" , userId : string) =>{
   try{
     const book = await getBookDetails(bookid);
+    const user = await getUserDetails(userId);
+    
     if(book){
-      book!.shelve = status;
-      return editShelve(userId, book);
+      //@ts-ignore
+      const bookExistsInUserBooks = user.books.some(userBook => userBook._id.equals(book._id));
+      if(bookExistsInUserBooks){
+        const bookId = book._id
+        return updateBookInUser(userId,{_id: bookId , shelve: status})
+      }else{
+        book!.shelve = status;
+        return editShelve(userId, book);
+
+      }
     }
   }catch(error){
     throw new Error(error as string);
