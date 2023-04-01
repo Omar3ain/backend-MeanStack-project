@@ -48,4 +48,4 @@ const userEditSchema = Joi.object({
 });
 
 
-export default {userRegisterSchema, userLoginSchema, userEditSchema};
+export default { userRegisterSchema, userLoginSchema, userEditSchema };

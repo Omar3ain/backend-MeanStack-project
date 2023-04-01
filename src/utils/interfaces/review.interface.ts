@@ -6,4 +6,5 @@ interface Review extends Document {
   comment: string;
 }
 
+
 export default Review;
