@@ -1,13 +1,14 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import multer from 'multer';
+
 import RouteInterface from '@/utils/interfaces/router.interface';
 import bookController from '@/controllers/book';
 import httpException from '@/utils/exceptions/http.exception';
 import verifyAuth from '@/middlewares/verifyUser';
 import CustomRequest from '@/utils/interfaces/request.interface';
-import multer from 'multer';
-
 import Pagination from '@/utils/interfaces/pagination.interface';
-
+import validationMiddleware from '@/middlewares/validation.middleware';
+import validate from '@/utils/validations/book/schema';
 class bookRouter implements RouteInterface {
   public router: Router = Router();
   public upload: multer.Multer;
@@ -19,8 +20,8 @@ class bookRouter implements RouteInterface {
   private initializeRoutes = () => {
     this.router.get('', this.getBooks);
     this.router.get('/:id', this.getBook);
-    this.router.patch('/:id/shelve', verifyAuth, this.upload.none(), this.changeBookShelve);
-    this.router.patch('/:id/review', this.getBook);
+    this.router.patch('/:id/review', this.editReviews);
+    this.router.patch('/:id/shelve', verifyAuth, this.upload.none(), validationMiddleware(validate.updateBook), this.changeBookShelve);
   }
 
   private getBooks = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {

@@ -1,10 +1,14 @@
-import Book, { ReviewModel } from '@/models/Book'
-import iBook, { BookUpdate } from '@/utils/interfaces/book.interface';
-import Pagination from '@/utils/interfaces/pagination.interface';
+import { ReviewModel } from '@/models/Book'
+
+import Review from '@/utils/interfaces/review.interface';
+import Book from '@/models/Book'
 import fs from 'fs';
 
-import { editShelve } from '@/controllers/user'
-import Review from '@/utils/interfaces/review.interface';
+import iBook, { BookUpdate } from '@/utils/interfaces/book.interface';
+import Pagination from '@/utils/interfaces/pagination.interface';
+import { editShelve, getUserDetails, updateBookInUser } from '@/controllers/user';
+import mongoose, { ObjectId } from 'mongoose';
+
 
 const createBook = async (obj: iBook, coverPhoto: string) => {
   const { name, authorId, description, categoryId } = obj;
@@ -75,9 +79,19 @@ const getBookDetails = async (id: string) => {
 const editBookShelve = async (bookid: string, status: "read" | "want_to_read" | "currently_reading" | "none", userId: string) => {
   try {
     const book = await getBookDetails(bookid);
+    const user = await getUserDetails(userId);
+
     if (book) {
-      book!.shelve = status;
-      return editShelve(userId, book);
+      //@ts-ignore
+      const bookExistsInUserBooks = user.books.some(userBook => userBook._id.equals(book._id));
+      if (bookExistsInUserBooks) {
+        const bookId = book._id
+        return updateBookInUser(userId, { _id: bookId, shelve: status })
+      } else {
+        book!.shelve = status;
+        return editShelve(userId, book);
+
+      }
     }
   } catch (error) {
     throw new Error(error as string);
@@ -86,21 +100,34 @@ const editBookShelve = async (bookid: string, status: "read" | "want_to_read" | 
 
 const updatedReview = async (bookId: string, update: Review) => {
   try {
-    // Check if the book exists
-    const book = await Book.findById(bookId);
-    if (!book) {
-      throw new Error(`Book not found: ${bookId}`);
-    }
+    // console.log(bookId);
+    // const id = new mongoose.Types.ObjectId(bookId);
 
     const updatedReview = await Book.findByIdAndUpdate(
-      bookId,
-      { $push: { update } },
-      { new: true }
-    );
+      { _id: bookId },
+      { $push: { reviews: update } },
+      { new: true, runValidators: true }
+    ).exec();
     return updatedReview
+    console.log(updatedReview);
 
   } catch (error) {
     throw new Error(error as string);
   }
 }
+// const getReview = async (bookId: string, update: Review) => {
+//   try {
+//     const id = new mongoose.Types.ObjectId(bookId);
+//     const getReview = await Book.findById(
+//       id,
+//       { $push: { reviews: update } },
+//       { new: true }
+//     )
+//     return updatedReview
+//     console.log(updatedReview);
+
+//   } catch (error) {
+//     throw new Error(error as string);
+//   }
+// }
 export default { createBook, deleteBook, editBook, getAllBooks, getBookDetails, editBookShelve, updatedReview };
