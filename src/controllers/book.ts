@@ -4,6 +4,7 @@ import fs from 'fs';
 import iBook , { BookUpdate } from '@/utils/interfaces/book.interface';
 import Pagination from '@/utils/interfaces/pagination.interface';
 import  { editShelve, getUserDetails, updateBookInUser }  from '@/controllers/user';
+import IUser from '@/utils/interfaces/user.interface';
 
 
 const createBook = async (obj: iBook , coverPhoto : string) => {
@@ -75,18 +76,17 @@ const getBookDetails = async (id: string) => {
 const editBookShelve = async (bookid : string , status : "read" | "want_to_read" | "currently_reading" | "none" , userId : string) =>{
   try{
     const book = await getBookDetails(bookid);
-    const user = await getUserDetails(userId);
+    const user : IUser = await getUserDetails(userId);
+    const { reviews, ...bookWithoutReviews } = book!.toObject();
     
     if(book){
-      //@ts-ignore
-      const bookExistsInUserBooks = user.books.some(userBook => userBook._id.equals(book._id));
+      const bookExistsInUserBooks = user.books?.some((userBook : any) => userBook._id.equals(book._id));
       if(bookExistsInUserBooks){
         const bookId = book._id
         return updateBookInUser(userId,{_id: bookId , shelve: status})
       }else{
-        book!.shelve = status;
-        return editShelve(userId, book);
-
+        bookWithoutReviews!.shelve = status;
+        return editShelve(userId, bookWithoutReviews);
       }
     }
   }catch(error){
