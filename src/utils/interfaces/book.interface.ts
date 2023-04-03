@@ -1,4 +1,4 @@
-import { Schema , Types} from "mongoose";
+import { Schema, Types } from "mongoose";
 import Review from "@/utils/interfaces/review.interface";
 
 export default interface iBook {
@@ -17,6 +17,6 @@ export interface BookUpdate {
   authorId?: string;
   categoryId?: string;
   description?: string;
-  shelve?: 'read' | 'want_to_read' | 'currently_reading'| "none";
+  shelve?: 'read' | 'want_to_read' | 'currently_reading' | "none";
   reviews?: Review[];
 }

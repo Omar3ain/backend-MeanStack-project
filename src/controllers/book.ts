@@ -96,9 +96,9 @@ const editBookShelve = async (bookid: string, status: "read" | "want_to_read" | 
 }
 const editReview = async (bookId: string, update: Review) => {
   try {
-    const updatedReview = await Book.findOneAndUpdate({ _id: bookId, 'reviews.userId': update.userId }, { $set: { 'reviews.$.comment': update.comment ,'reviews.$.rating': update.rating} }, { new: true });
+    const updatedReview = await Book.findOneAndUpdate({ _id: bookId, 'reviews.userId': update.userId }, { $set: { 'reviews.$.comment': update.comment, 'reviews.$.rating': update.rating } }, { new: true });
     return updatedReview;
-  }catch(error){
+  } catch (error) {
     throw new Error(error as string);
   }
 }
@@ -108,8 +108,8 @@ const updatedReview = async (bookId: string, update: Review) => {
     const book = await getBookDetails(bookId);
     if (book) {
       const userReviewExistInBook = book.reviews?.some((review: any) => review.userId.equals(update.userId));
-      if (userReviewExistInBook ) {
-        return editReview(bookId,update);
+      if (userReviewExistInBook) {
+        return editReview(bookId, update);
       } else {
         return await Book.findByIdAndUpdate(
           { _id: bookId },
@@ -124,9 +124,9 @@ const updatedReview = async (bookId: string, update: Review) => {
 }
 const getReviews = async (bookId: string) => {
   try {
-    return await Book.findById({_id : bookId} , {reviews: 1 , _id : 0}).exec();
+    return await Book.findById({ _id: bookId }, { reviews: 1, _id: 0 }).exec();
   } catch (error) {
     throw new Error(error as string);
   }
 }
-export default { createBook, deleteBook, editBook, getAllBooks, getBookDetails, editBookShelve, updatedReview ,getReviews};
+export default { createBook, deleteBook, editBook, getAllBooks, getBookDetails, editBookShelve, updatedReview, getReviews };

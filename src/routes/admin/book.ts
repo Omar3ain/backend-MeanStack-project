@@ -1,14 +1,14 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { Multer } from 'multer';
+import fs from 'fs';
+
 import RouteInterface from '@/utils/interfaces/router.interface';
 import bookController from '@/controllers/book';
 import httpException from '@/utils/exceptions/http.exception';
 import verifyAdmin from '@/middlewares/verifyAdmin';
 import validationMiddleware from '@/middlewares/validation.middleware';
 import validate from '@/utils/validations/book/schema';
-import { Multer } from 'multer';
-import fs from 'fs';
 import formUpload from '@/middlewares/form.middleware';
-//validationMiddleware(validate.login)
 class bookAdminRouter implements RouteInterface {
   public router: Router = Router();
 

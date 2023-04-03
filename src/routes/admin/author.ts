@@ -1,10 +1,11 @@
+import { Router, Request, Response, NextFunction } from 'express';
+import { Multer } from 'multer';
+import fs from 'fs';
+
 import authorController from '@/controllers/author'
 import verifyAdmin from '@/middlewares/verifyAdmin';
 import httpException from '@/utils/exceptions/http.exception';
 import RouteInterface from '@/utils/interfaces/router.interface';
-import fs from 'fs';
-import { Router, Request, Response, NextFunction } from 'express';
-import { Multer } from 'multer';
 import formUpload from '@/middlewares/form.middleware';
 import validationMiddleware from '@/middlewares/validation.middleware';
 import validate from '@/utils/validations/author/Schema'
@@ -34,7 +35,6 @@ class AuthorAdminRouter implements RouteInterface {
             res.status(200).json({ createdAuthor });
         } catch (err: any) {
             fs.unlinkSync(filePath);
-            console.error('Error creating author:', err);
             next(new httpException(401, err.massage as string));
         }
 
@@ -60,16 +60,11 @@ class AuthorAdminRouter implements RouteInterface {
         try {
             const deleteAuthor = await authorController.deleteAuthorById(id);
             res.status(200).json(deleteAuthor)
-
-
         }
         catch (err: any) {
             next(new httpException(401, err.massage as string));
         }
     }
-
-
-
 }
 
 export default AuthorAdminRouter;

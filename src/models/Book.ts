@@ -1,6 +1,6 @@
 import iBook from '@/utils/interfaces/book.interface';
 import Review from '@/utils/interfaces/review.interface';
-import { Schema, model, Model } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
 const reviewSchema = new Schema<Review>({
   userId: {
@@ -8,8 +8,8 @@ const reviewSchema = new Schema<Review>({
     ref: 'User',
     required: true,
   },
-  username : { type: String, required: true },
-  rating: { type: Number, required: true , min: 0, max: 5},
+  username: { type: String, required: true },
+  rating: { type: Number, required: true, min: 0, max: 5 },
   comment: { type: String, required: true },
 });
 

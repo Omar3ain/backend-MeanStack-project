@@ -2,10 +2,8 @@ import fs from 'fs';
 import { compare, hash } from "bcrypt";
 import User from "@/models/User";
 import iBook, { BookUpdate } from "@/utils/interfaces/book.interface";
-import Pagination from '@/utils/interfaces/pagination.interface';
 import IUser, { IUserUpdate, UserBookQuery } from "@/utils/interfaces/user.interface";
 import createToken from "@/utils/token/creation";
-import strictTransportSecurity from 'helmet/dist/types/middlewares/strict-transport-security';
 
 const login = async (obj: IUser) => {
     const { email, password } = obj;

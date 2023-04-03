@@ -2,7 +2,7 @@ import { Schema } from "mongoose";
 
 interface Review extends Document {
   userId: Schema.Types.ObjectId;
-  username : string;
+  username: string;
   rating: number;
   comment: string;
 }

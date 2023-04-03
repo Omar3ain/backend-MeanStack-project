@@ -1,11 +1,12 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router} from 'express';
+
 import RouteInterface from '@/utils/interfaces/router.interface';
 import adminRouter from '@/routes/admin/index'
 import userRouter from '@/routes/user/user';
 import authRouter from '@/routes/user/auth';
 import bookRouter from '@/routes/user/book';
 import categoryRouter from '@/routes/user/category';
-import authorRouter from './user/author';
+import authorRouter from '@/routes/user/author';
 
 
 class mainRouter implements RouteInterface {
