@@ -10,13 +10,13 @@ interface FilterCategories {
     creator?: any;
 }
 export default {
-    getAll: async (queryParam: any) => {
+    getAll: async (queryParam: any , isAdmin: any) => {
         let pagination: Pagination = {
             skip: queryParam.skip || 0,
             limit: queryParam.limit || 10,
         };
         let filter: FilterCategories = {};
-        if (queryParam.creator) {
+        if (isAdmin && queryParam.creator) {
             const users = await User.find({
                 $or: [
                     {
@@ -44,7 +44,6 @@ export default {
         if (queryParam.name) {
             filter.name = { $regex: ".*" + queryParam.name + ".*" };
         }
-        console.log(filter);
         let categories: ICategory[] | null;
 
         categories = await Category.find(filter)

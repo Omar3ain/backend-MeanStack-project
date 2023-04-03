@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import RouteInterface from '@/utils/interfaces/router.interface';
-import categoryController from '@/controllers/category'
+import categoryController from '@/controllers/category';
+import userController from '@/controllers/user';
 import httpException from '@/utils/exceptions/http.exception';
 import multer from 'multer';
 
@@ -19,7 +20,14 @@ class categoryUserRouter implements RouteInterface {
   }
   private getAllCategories = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
-      const categories = await categoryController.getAll(req.query)
+      let isAdmin = false;
+      const id: string = (<any>req).user._id;
+      if(id){
+        const userDetails = await userController.getUserDetails(id);
+        if(userDetails.isAdmin == true) isAdmin = true;
+      }
+
+      const categories = await categoryController.getAll(req.query, isAdmin)
       res.status(200).json({ categories });
     } catch (error: any) {
       next(new httpException(401, error.message as string));
