@@ -7,6 +7,7 @@ import httpException from '@/utils/exceptions/http.exception';
 import verifyAdmin from '@/middlewares/verifyAdmin';
 import validationMiddleware from '@/middlewares/validation.middleware';
 import categoryValidator from '@/utils/validations/category/schema';
+import userController from '@/controllers/user';
 
 class categoryAdminRouter implements RouteInterface {
   public router: Router = Router();
@@ -26,7 +27,13 @@ class categoryAdminRouter implements RouteInterface {
   }
   private getAllCategories = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
-      const categories = await categoryController.getAll(req.query)
+      let isAdmin = false;
+      const id: string = (<any>req).user._id;
+      if(id){
+        const userDetails = await userController.getUserDetails(id);
+        if(userDetails.isAdmin == true) isAdmin = true;
+      }
+      const categories = await categoryController.getAll(req.query, isAdmin)
       res.status(200).json({ categories });
     } catch (error: any) {
       next(new httpException(401, error.message as string));
