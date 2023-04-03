@@ -8,12 +8,13 @@ const reviewSchema = new Schema<Review>({
     ref: 'User',
     required: true,
   },
-  rating: { type: Number, required: true },
+  username: { type: String, required: true },
+  rating: { type: Number, required: true, min: 0, max: 5 },
   comment: { type: String, required: true },
 });
 
 const bookSchema = new Schema<iBook>({
-  coverPhoto: { type: String ,default: '' },
+  coverPhoto: { type: String, default: '' },
   name: { type: String, required: true },
   authorId: {
     type: Schema.Types.ObjectId,
@@ -22,7 +23,7 @@ const bookSchema = new Schema<iBook>({
   },
   shelve: {
     type: String,
-    enum: ['read', 'want_to_read', 'currently_reading' , 'none'],
+    enum: ['read', 'want_to_read', 'currently_reading', 'none'],
     default: 'none',
   },
   categoryId: {
@@ -31,7 +32,9 @@ const bookSchema = new Schema<iBook>({
     required: true,
   },
   description: { type: String, required: true },
-  reviews: {type : [reviewSchema] ,default: []},
-},{ timestamps: true });
+  reviews: { type: [reviewSchema], default: [] },
+}, { timestamps: true });
 
 export default model<iBook>('Book', bookSchema);
+
+

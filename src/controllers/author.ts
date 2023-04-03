@@ -1,5 +1,5 @@
 import Author from "@/models/Author";
-import IAuthor, {AuthorUpdate} from "@/utils/interfaces/author.interface";
+import IAuthor, { AuthorUpdate } from "@/utils/interfaces/author.interface";
 import fs from 'fs';
 
 const createAuthor = async (obj: IAuthor, photo: string) => {
@@ -34,7 +34,7 @@ const getAuthorById = async (id: string) => {
     }
 }
 
-const updateAuthor = async (authorId: string, obj :AuthorUpdate) => {
+const updateAuthor = async (authorId: string, obj: AuthorUpdate) => {
     try {
         const beforUpdate = await getAuthorById(authorId)
         const updatedAuthor = await Author.findByIdAndUpdate(
@@ -67,7 +67,7 @@ const deleteAuthorById = async (id: string) => {
     }
     catch (error) {
 
-        
+
         throw new Error(error as string);
     }
 }

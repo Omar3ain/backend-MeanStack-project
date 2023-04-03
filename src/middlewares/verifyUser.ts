@@ -1,6 +1,7 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
-import User from "@/models/User";
 import { Request, Response, NextFunction } from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
+
+import User from "@/models/User";
 import httpException from "@/utils/exceptions/http.exception";
 
 const verifyAuth = async (req: Request, res: Response, next: NextFunction) => {
@@ -16,13 +17,13 @@ const verifyAuth = async (req: Request, res: Response, next: NextFunction) => {
             if (!user.isAdmin) {
                 (<any>req).user = user;
                 next();
-            }else{
+            } else {
                 next(new httpException(401, "You are not a user"));
             }
-        }else{
+        } else {
             next(new httpException(401, "user doesn't exist, Invalid!"));
         }
-    }catch(err){
+    } catch (err) {
         next(new httpException(401, "Access denied, Invalid token!"));
     }
 

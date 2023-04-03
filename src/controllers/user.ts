@@ -1,9 +1,8 @@
 import fs from 'fs';
 import { compare, hash } from "bcrypt";
 import User from "@/models/User";
-import iBook from "@/utils/interfaces/book.interface";
-import Pagination from '@/utils/interfaces/pagination.interface';
-import IUser, { IUserUpdate , UserBookQuery} from "@/utils/interfaces/user.interface";
+import iBook, { BookUpdate } from "@/utils/interfaces/book.interface";
+import IUser, { IUserUpdate, UserBookQuery } from "@/utils/interfaces/user.interface";
 import createToken from "@/utils/token/creation";
 
 const login = async (obj: IUser) => {
@@ -30,7 +29,7 @@ const signUp = async (obj: IUser) => {
     }
 }
 
-const getUserDetails = async (id: string) => {
+export const getUserDetails = async (id: string) => {
     const user = await User.findById(id);
     if (user) {
         return user;
@@ -55,10 +54,10 @@ const editUser = async (id: string, obj: IUserUpdate) => {
     }
 }
 
-const getUserBooks = async (id : string , obj: UserBookQuery ) => {
+const getUserBooks = async (id: string, obj: UserBookQuery) => {
     try {
         const user = await getUserDetails(id);
-        const books = user.books?.filter((book : iBook) => book.shelve === obj.shelve);
+        const books = user.books?.filter((book: iBook) => book.shelve === obj.shelve);
         const paginatedBooks = books!.slice(Number(obj.skip), Number(obj.skip) + Number(obj.limit));
         return paginatedBooks;
     } catch (error) {
@@ -66,13 +65,24 @@ const getUserBooks = async (id : string , obj: UserBookQuery ) => {
     }
 }
 
-export const editShelve = async (id :string, obj:iBook ) => {
+export const editShelve = async (id: string, obj: iBook) => {
     try {
-    const updatedUser = await User.findByIdAndUpdate({ _id: id },{ $push : {books :obj } }, { new: true, runValidators: true }).exec();
-    return updatedUser;
-    }catch(error) {
+        const updatedUser = await User.findByIdAndUpdate({ _id: id }, { $push: { books: obj } }, { new: true, runValidators: true }).exec();
+        return updatedUser;
+    } catch (error) {
         throw new Error(error as string);
     }
 }
 
-export default { signUp, login, getUserDetails, editUser, getUserBooks ,editShelve};
+export const updateBookInUser = async (id: string, obj: BookUpdate) => {
+    try {
+        const updatedUser = await User.findOneAndUpdate({ _id: id, 'books._id': obj._id }, { $set: { 'books.$.shelve': obj.shelve } }, { new: true });
+        return updatedUser;
+    } catch (error) {
+        throw new Error(error as string);
+    }
+
+}
+
+
+export default { signUp, login, getUserDetails, editUser, getUserBooks, editShelve };

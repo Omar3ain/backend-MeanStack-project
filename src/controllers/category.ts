@@ -66,7 +66,6 @@ export default {
         const deletedCategory: ICategory | null =
             await Category.findOneAndDelete({ name: categoryName });
         if (deletedCategory) {
-            console.log("Category deleted: " + deletedCategory);
             return deletedCategory;
         } else {
             throw new Error("Category not removed or not found");
@@ -74,7 +73,6 @@ export default {
     },
 
     edit: async (categoryName:string ,category: ICategory ): Promise<ICategory> => {
-        // const newCreator = await User.findOne({"_id": new mongoose.Types.ObjectId(category.creator)}).exec();
         const newCreator = await User.findById(category.creator).exec();
         if(!newCreator) throw new Error("user not found");
         const isCategoryNameExist = await Category.findOne({
@@ -87,7 +85,6 @@ export default {
                 updatedAt: new Date().toISOString()
             });
         if (updatedCategory) {
-            console.log("Category deleted: " + updatedCategory);
             return updatedCategory;
         } else {
             throw new Error("Category not removed or not found");
