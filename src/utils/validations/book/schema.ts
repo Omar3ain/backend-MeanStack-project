@@ -2,8 +2,7 @@ import joi from 'joi';
 
 
 const reviews = joi.object({
-  userId: joi.string().required(),
-  rating: joi.number().required(),
+  rating: joi.number().required().min(0).max(5),
   comment: joi.string().required()
 });
 
@@ -13,17 +12,15 @@ const createBook =  joi.object({
   authorId :joi.string().required(),
   categoryId : joi.string().required(),
   shelve : joi.string().valid('read', 'want_to_read', 'currently_reading' , 'none'),
-  description: joi.string().required(),
-  reviews : joi.array().items(reviews)
+  description: joi.string().required()
 });
 
 const updateBook =  joi.object().keys({
   coverPhoto : createBook.extract('coverPhoto'),
   name : createBook.extract('name').optional(),
   shelve : createBook.extract('shelve'),
-  description: createBook.extract('description').optional(),
-  reviews : createBook.extract('reviews')
+  description: createBook.extract('description').optional()
 });
 
 
-export default {createBook , updateBook};
+export default {createBook , updateBook , reviews};

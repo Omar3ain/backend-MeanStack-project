@@ -8,10 +8,10 @@ const reviewSchema = new Schema<Review>({
     ref: 'User',
     required: true,
   },
-  rating: { type: Number, required: true },
+  username : { type: String, required: true },
+  rating: { type: Number, required: true , min: 0, max: 5},
   comment: { type: String, required: true },
 });
-const ReviewModel: Model<Review> = model<Review>('Review', reviewSchema);
 
 const bookSchema = new Schema<iBook>({
   coverPhoto: { type: String, default: '' },
@@ -36,5 +36,5 @@ const bookSchema = new Schema<iBook>({
 }, { timestamps: true });
 
 export default model<iBook>('Book', bookSchema);
-export { ReviewModel }
+
 

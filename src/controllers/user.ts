@@ -78,8 +78,6 @@ export const editShelve = async (id: string, obj: iBook) => {
 
 export const updateBookInUser = async (id: string, obj: BookUpdate) => {
     try {
-        console.log(obj);
-
         const updatedUser = await User.findOneAndUpdate({ _id: id, 'books._id': obj._id }, { $set: { 'books.$.shelve': obj.shelve } }, { new: true });
         return updatedUser;
     } catch (error) {
