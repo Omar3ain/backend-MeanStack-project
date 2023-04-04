@@ -15,6 +15,7 @@ const categorySchema = new Schema<Category>(
             ref: "User",
             required: true
         },
+        cover: String,
     },
     { timestamps: true }
 );
