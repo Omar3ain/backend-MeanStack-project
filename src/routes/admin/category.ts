@@ -25,6 +25,7 @@ class categoryAdminRouter implements RouteInterface {
     this.router.delete('/:grategoryName', verifyAdmin, this.upload.none(), this.deleteGategory);
     this.router.patch('/:grategoryName', verifyAdmin, this.upload.single("categoryCover"), this.editGategory);
     this.router.get('/:grategoryName/books', verifyAdmin, this.upload.none(), this.getAllBooks);
+    this.router.get('/:id', verifyAdmin, this.upload.none(), this.getCategoryById);
   }
   private getAllCategories = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
@@ -77,6 +78,16 @@ class categoryAdminRouter implements RouteInterface {
       const books = await categoryController.getAllBooks(grategoryName);
       if (books.length < 1) next(new httpException(401, "no books in this category"));
       res.status(200).json({ status: 201, books });
+    } catch (error: any) {
+      next(new httpException(401, error.message as string));
+    }
+  }
+
+  private getCategoryById = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+    const { id } = req.params;
+    try {
+      const category = await categoryController.getById(id);
+      res.status(200).json({ status: 201, category });
     } catch (error: any) {
       next(new httpException(401, error.message as string));
     }
