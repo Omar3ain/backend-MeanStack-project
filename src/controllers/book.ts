@@ -114,9 +114,9 @@ const updatedReview = async (bookId: string, update: Review) => {
     throw new Error(error as string);
   }
 }
-// const getReview = async (bookId: string, update: Review) => {
+// const getReview = async (bookId: string, review: Review) => {
 //   try {
-//     const id = new mongoose.Types.ObjectId(bookId);
+//    
 //     const getReview = await Book.findById(
 //       id,
 //       { $push: { reviews: update } },
