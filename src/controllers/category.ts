@@ -61,7 +61,15 @@ export default {
             throw new Error("Category not added");
         }
     },
-
+    getById: async (categoryId: string): Promise<ICategory> => {
+        if (!mongoose.isValidObjectId(categoryId)) throw new Error("Invalid category id: " + categoryId); 
+        try {
+            const category: ICategory | null = await Category.findById(categoryId);
+            return category!;
+        } catch (err) {
+            throw new Error("Invalid category id: " + categoryId);
+        }
+    },
     remove: async (categoryName: string): Promise<ICategory> => {
         const deletedCategory: ICategory | null =
             await Category.findOneAndDelete({ 
