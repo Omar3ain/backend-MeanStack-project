@@ -2,10 +2,8 @@ import fs from 'fs';
 import { compare, hash } from "bcrypt";
 import User from "@/models/User";
 import iBook, { BookUpdate } from "@/utils/interfaces/book.interface";
-import Pagination from '@/utils/interfaces/pagination.interface';
 import IUser, { IUserUpdate, UserBookQuery } from "@/utils/interfaces/user.interface";
 import createToken from "@/utils/token/creation";
-import strictTransportSecurity from 'helmet/dist/types/middlewares/strict-transport-security';
 
 const login = async (obj: IUser) => {
     const { email, password } = obj;
@@ -13,7 +11,7 @@ const login = async (obj: IUser) => {
     if (user) {
         const hashPassword = await compare(password, user.password);
         if (hashPassword) {
-            return createToken(user._id.toString(), user.email);
+            return createToken(user._id.toString(), user.email, user.isAdmin!);
         }
     } else {
         throw new Error("Wrong E-mail or Password");
@@ -25,7 +23,7 @@ const signUp = async (obj: IUser) => {
     const hashPassword = await hash(password, Number(process.env.SALT_ROUNDS));
     try {
         const user = await User.create({ firstName, lastName, email, password: hashPassword, avatar });
-        return createToken(user._id.toString(), user.email);
+        return createToken(user._id.toString(), user.email, user.isAdmin!);
     } catch (err) {
         throw new Error(err as string);
     }
@@ -78,8 +76,6 @@ export const editShelve = async (id: string, obj: iBook) => {
 
 export const updateBookInUser = async (id: string, obj: BookUpdate) => {
     try {
-        console.log(obj);
-
         const updatedUser = await User.findOneAndUpdate({ _id: id, 'books._id': obj._id }, { $set: { 'books.$.shelve': obj.shelve } }, { new: true });
         return updatedUser;
     } catch (error) {

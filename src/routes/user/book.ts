@@ -19,8 +19,9 @@ class bookRouter implements RouteInterface {
 
   private initializeRoutes = () => {
     this.router.get('', this.getBooks);
-    this.router.get('/:id', this.getBook);
-    this.router.patch('/:id/review', this.editReviews);
+    this.router.get('/:id', verifyAuth, this.getBook);
+    this.router.get('/:id/reviews', verifyAuth, this.getReviews);
+    this.router.patch('/:id/review', verifyAuth, this.upload.none(), validationMiddleware(validate.reviews), this.editReviews);
     this.router.patch('/:id/shelve', verifyAuth, this.upload.none(), validationMiddleware(validate.updateBook), this.changeBookShelve);
   }
 
@@ -51,14 +52,25 @@ class bookRouter implements RouteInterface {
       next(new httpException(401, error.message as string));
     }
   }
-  private editReviews = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  private editReviews = async (req: CustomRequest, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
-      const id = req.params.id
-      const updatedReview = await bookController.updatedReview(id, req.body)
+      const bookId: string = req.params.id;
+      req.body.userId = req.user?._id;
+      req.body.username = req.user?.firstName + ' ' + req.user?.lastName;
+      const updatedReview = await bookController.updatedReview(bookId, req.body)
       res.status(200).json(updatedReview)
     } catch (error: any) {
       next(new httpException(401, error.message as string));
 
+    }
+  }
+  private getReviews = async (req: CustomRequest, res: Response, next: NextFunction): Promise<Response | void> => {
+    try {
+      const bookId: string = req.params.id;
+      const reviews = await bookController.getReviews(bookId)
+      res.status(200).json(reviews)
+    } catch (error: any) {
+      next(new httpException(401, error.message as string));
     }
   }
 }

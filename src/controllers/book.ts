@@ -1,5 +1,3 @@
-import { ReviewModel } from '@/models/Book'
-
 import Review from '@/utils/interfaces/review.interface';
 import Book from '@/models/Book'
 import fs from 'fs';
@@ -96,37 +94,39 @@ const editBookShelve = async (bookid: string, status: "read" | "want_to_read" | 
     throw new Error(error as string);
   }
 }
-
-const updatedReview = async (bookId: string, update: Review) => {
+const editReview = async (bookId: string, update: Review) => {
   try {
-    // console.log(bookId);
-    const id = String(bookId);
-
-    const updatedReview = await Book.findByIdAndUpdate(
-      { _id: id },
-      { $push: { reviews: update } },
-      { new: true, runValidators: true }
-    ).exec();
-    return updatedReview
-    console.log(updatedReview);
-
+    const updatedReview = await Book.findOneAndUpdate({ _id: bookId, 'reviews.userId': update.userId }, { $set: { 'reviews.$.comment': update.comment, 'reviews.$.rating': update.rating } }, { new: true });
+    return updatedReview;
   } catch (error) {
     throw new Error(error as string);
   }
 }
-// const getReview = async (bookId: string, review: Review) => {
-//   try {
-//    
-//     const getReview = await Book.findById(
-//       id,
-//       { $push: { reviews: update } },
-//       { new: true }
-//     )
-//     return updatedReview
-//     console.log(updatedReview);
 
-//   } catch (error) {
-//     throw new Error(error as string);
-//   }
-// }
-export default { createBook, deleteBook, editBook, getAllBooks, getBookDetails, editBookShelve, updatedReview };
+const updatedReview = async (bookId: string, update: Review) => {
+  try {
+    const book = await getBookDetails(bookId);
+    if (book) {
+      const userReviewExistInBook = book.reviews?.some((review: any) => review.userId.equals(update.userId));
+      if (userReviewExistInBook) {
+        return editReview(bookId, update);
+      } else {
+        return await Book.findByIdAndUpdate(
+          { _id: bookId },
+          { $push: { reviews: update } },
+          { new: true, runValidators: true }
+        ).exec();
+      }
+    }
+  } catch (error) {
+    throw new Error(error as string);
+  }
+}
+const getReviews = async (bookId: string) => {
+  try {
+    return await Book.findById({ _id: bookId }, { reviews: 1, _id: 0 }).exec();
+  } catch (error) {
+    throw new Error(error as string);
+  }
+}
+export default { createBook, deleteBook, editBook, getAllBooks, getBookDetails, editBookShelve, updatedReview, getReviews };

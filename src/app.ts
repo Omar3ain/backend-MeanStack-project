@@ -1,13 +1,14 @@
 import express , { Application } from 'express';
-import RouteInterface from '@/utils/interfaces/router.interface';
-import ErrorMiddleware from '@/middlewares/error.middleware';
-import initializeDatabaseConnection from '@/config/db';
 import compression from 'compression';
 import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import bodyParser from 'body-parser';
 import path from 'path';
+
+import ErrorMiddleware from '@/middlewares/error.middleware';
+import RouteInterface from '@/utils/interfaces/router.interface';
+import initializeDatabaseConnection from '@/config/db';
 
 class App {
   public express: Application;

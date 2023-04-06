@@ -1,9 +1,10 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { Multer } from 'multer';
+import fs from 'fs';
+
 import RouteInterface from '@/utils/interfaces/router.interface';
 import userController from '@/controllers/user'
 import httpException from '@/utils/exceptions/http.exception';
-import { Multer } from 'multer';
-import fs from 'fs';
 import verifyAuth from '@/middlewares/verifyUser';
 import validationMiddleware from '@/middlewares/validation.middleware';
 import validate from '@/utils/validations/user/schema';
@@ -46,15 +47,15 @@ class userRouter implements RouteInterface {
       next(new httpException(401, error.message as string));
     }
   }
-  
-/*
-  /profile/books?shelve=read&skip=0&limit=10
-*/
+
+  /*
+    /profile/books?shelve=read&skip=0&limit=10
+  */
   private getBookByShelve = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
       const id: string = (<any>req).user._id;
-      const {shelve, skip, limit} : UserBookQuery = req.query;
-      const user = await userController.getUserBooks(id, {shelve, skip, limit});
+      const { shelve, skip, limit }: UserBookQuery = req.query;
+      const user = await userController.getUserBooks(id, { shelve, skip, limit });
       res.status(200).json(user);
     } catch (error: any) {
       next(new httpException(401, error.message as string));

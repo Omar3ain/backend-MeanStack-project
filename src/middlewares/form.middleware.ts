@@ -3,7 +3,7 @@ import { Request } from "express";
 import path from "path";
 
 const formUpload = (filePath : string) :  multer.Multer => {
- return  multer({
+  return  multer({
     storage: multer.diskStorage({
       destination: (req: Request, file, cb) => {
         cb(null, filePath)

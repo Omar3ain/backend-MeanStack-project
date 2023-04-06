@@ -10,13 +10,13 @@ interface FilterCategories {
     creator?: any;
 }
 export default {
-    getAll: async (queryParam: any) => {
+    getAll: async (queryParam: any , isAdmin: any) => {
         let pagination: Pagination = {
             skip: queryParam.skip || 0,
             limit: queryParam.limit || 10,
         };
         let filter: FilterCategories = {};
-        if (queryParam.creator) {
+        if (isAdmin && queryParam.creator) {
             const users = await User.find({
                 $or: [
                     {
@@ -44,7 +44,6 @@ export default {
         if (queryParam.name) {
             filter.name = { $regex: ".*" + queryParam.name + ".*" };
         }
-        console.log(filter);
         let categories: ICategory[] | null;
 
         categories = await Category.find(filter)
@@ -62,12 +61,24 @@ export default {
             throw new Error("Category not added");
         }
     },
-
+    getById: async (categoryId: string): Promise<ICategory> => {
+        if (!mongoose.isValidObjectId(categoryId)) throw new Error("Invalid category id: " + categoryId); 
+        try {
+            const category: ICategory | null = await Category.findById(categoryId);
+            return category!;
+        } catch (err) {
+            throw new Error("Invalid category id: " + categoryId);
+        }
+    },
     remove: async (categoryName: string): Promise<ICategory> => {
         const deletedCategory: ICategory | null =
-            await Category.findOneAndDelete({ name: categoryName });
+            await Category.findOneAndDelete({ 
+                $or : [
+                    {_id: categoryName},
+                    {name: categoryName}
+                ]
+             });
         if (deletedCategory) {
-            console.log("Category deleted: " + deletedCategory);
             return deletedCategory;
         } else {
             throw new Error("Category not removed or not found");
@@ -75,7 +86,6 @@ export default {
     },
 
     edit: async (categoryName:string ,category: ICategory ): Promise<ICategory> => {
-        // const newCreator = await User.findOne({"_id": new mongoose.Types.ObjectId(category.creator)}).exec();
         const newCreator = await User.findById(category.creator).exec();
         if(!newCreator) throw new Error("user not found");
         const isCategoryNameExist = await Category.findOne({
@@ -88,7 +98,6 @@ export default {
                 updatedAt: new Date().toISOString()
             });
         if (updatedCategory) {
-            console.log("Category deleted: " + updatedCategory);
             return updatedCategory;
         } else {
             throw new Error("Category not removed or not found");

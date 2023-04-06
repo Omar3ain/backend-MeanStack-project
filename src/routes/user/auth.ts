@@ -1,9 +1,10 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { Multer } from 'multer';
+import fs from 'fs';
+
 import RouteInterface from '@/utils/interfaces/router.interface';
 import userController from '@/controllers/user'
 import httpException from '@/utils/exceptions/http.exception';
-import {Multer} from 'multer';
-import fs from 'fs';
 import validationMiddleware from '@/middlewares/validation.middleware';
 import validate from '@/utils/validations/user/schema';
 import formUpload from '@/middlewares/form.middleware';
@@ -17,8 +18,8 @@ class authRouter implements RouteInterface {
   }
 
   private initializeRoutes = () => {
-    this.router.post('/register', this.upload.single("avatar"),  validationMiddleware(validate.userRegisterSchema), this.register);
-    this.router.post('/login',  this.upload.none(), validationMiddleware(validate.userLoginSchema), this.login);
+    this.router.post('/register', this.upload.single("avatar"), validationMiddleware(validate.userRegisterSchema), this.register);
+    this.router.post('/login', this.upload.none(), validationMiddleware(validate.userLoginSchema), this.login);
   }
   private register = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     const { firstName, lastName, email, password } = req.body;
@@ -26,13 +27,9 @@ class authRouter implements RouteInterface {
     const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
     try {
       const userToken = await userController.signUp({ firstName, lastName, email, password, avatar });
-      res.status(200).json({ token: userToken });
+      res.status(200).json(userToken);
     } catch (error: any) {
-      try {
-        fs.unlinkSync(filePath);
-      } catch (error) {
-        console.log(error);
-      }
+      fs.unlinkSync(filePath);
       next(new httpException(401, error.message as string));
     }
   }
@@ -41,7 +38,7 @@ class authRouter implements RouteInterface {
     try {
       const userToken = await userController.login(req.body);
 
-      res.status(200).json({ token: userToken });
+      res.status(200).json(userToken);
     } catch (error: any) {
       next(new httpException(401, error.message as string));
     }
