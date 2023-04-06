@@ -23,7 +23,7 @@ const signUp = async (obj: IUser) => {
     const hashPassword = await hash(password, Number(process.env.SALT_ROUNDS));
     try {
         const user = await User.create({ firstName, lastName, email, password: hashPassword, avatar });
-        return createToken(user._id.toString(), user.email, user.isAdmin!);
+        return user;
     } catch (err) {
         throw new Error(err as string);
     }
