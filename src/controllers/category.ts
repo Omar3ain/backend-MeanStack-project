@@ -64,7 +64,12 @@ export default {
 
     remove: async (categoryName: string): Promise<ICategory> => {
         const deletedCategory: ICategory | null =
-            await Category.findOneAndDelete({ name: categoryName });
+            await Category.findOneAndDelete({ 
+                $or : [
+                    {_id: categoryName},
+                    {name: categoryName}
+                ]
+             });
         if (deletedCategory) {
             return deletedCategory;
         } else {
