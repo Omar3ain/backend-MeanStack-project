@@ -19,6 +19,7 @@ class bookAdminRouter implements RouteInterface {
   }
 
   private initializeRoutes = () => {
+    this.router.get('/:id', verifyAdmin, this.getBook);
     this.router.post('/', verifyAdmin, this.upload.single("coverPhoto"), validationMiddleware(validate.createBook), this.makeBook);
     this.router.delete('/:id', verifyAdmin, this.deleteBook);
     this.router.patch(`/:id`, verifyAdmin, this.upload.single("coverPhoto"), validationMiddleware(validate.updateBook), this.update);
@@ -31,6 +32,14 @@ class bookAdminRouter implements RouteInterface {
       res.status(200).json({ book });
     } catch (error: any) {
       fs.unlinkSync(filePath);
+      next(new httpException(401, error.message as string));
+    }
+  }
+  private getBook = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+    try {
+      const book = await bookController.getBookDetails(req.params.id);
+      res.status(200).json(book);
+    } catch (error: any) {
       next(new httpException(401, error.message as string));
     }
   }
