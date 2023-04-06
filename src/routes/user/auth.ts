@@ -27,7 +27,7 @@ class authRouter implements RouteInterface {
     const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
     try {
       const userToken = await userController.signUp({ firstName, lastName, email, password, avatar });
-      res.status(200).json({ token: userToken });
+      res.status(200).json(userToken);
     } catch (error: any) {
       fs.unlinkSync(filePath);
       next(new httpException(401, error.message as string));
@@ -38,7 +38,7 @@ class authRouter implements RouteInterface {
     try {
       const userToken = await userController.login(req.body);
 
-      res.status(200).json({ token: userToken });
+      res.status(200).json(userToken);
     } catch (error: any) {
       next(new httpException(401, error.message as string));
     }

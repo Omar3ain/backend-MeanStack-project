@@ -11,7 +11,7 @@ const login = async (obj: IUser) => {
     if (user) {
         const hashPassword = await compare(password, user.password);
         if (hashPassword) {
-            return createToken(user._id.toString(), user.email);
+            return createToken(user._id.toString(), user.email, user.isAdmin!);
         }
     } else {
         throw new Error("Wrong E-mail or Password");
@@ -23,7 +23,7 @@ const signUp = async (obj: IUser) => {
     const hashPassword = await hash(password, Number(process.env.SALT_ROUNDS));
     try {
         const user = await User.create({ firstName, lastName, email, password: hashPassword, avatar });
-        return createToken(user._id.toString(), user.email);
+        return createToken(user._id.toString(), user.email, user.isAdmin!);
     } catch (err) {
         throw new Error(err as string);
     }
