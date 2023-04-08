@@ -17,11 +17,11 @@ class categoryUserRouter implements RouteInterface {
 
   private initializeRoutes = () => {
     this.router.get('/', this.upload.none(), this.getAllCategories);
-    this.router.get('/:grategoryName/books', this.upload.none(), this.getAllBooks);
+    this.router.get('/:categoryName/books', this.upload.none(), this.getAllBooks);
   }
   private getAllCategories = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
-      const categories = await categoryController.getAll(req.query, false)
+      const categories = await categoryController.getAll(req.query)
       res.status(200).json({ categories });
     } catch (error: any) {
       next(new httpException(401, error.message as string));

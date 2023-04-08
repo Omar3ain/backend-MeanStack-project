@@ -10,12 +10,7 @@ const categorySchema = new Schema<Category>(
             minlength: 2,
             maxlength: 255,
         },
-        creator: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true
-        },
-        cover: String,
+        categoryCover: {type: String},
     },
     { timestamps: true }
 );

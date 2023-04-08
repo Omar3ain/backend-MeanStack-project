@@ -2,8 +2,7 @@ import mongoose from "mongoose";
 
 interface Category {
   name: string;
-  creator: mongoose.Types.ObjectId;
-  cover: string;
+  categoryCover: string;
 }
 
 export default Category;
