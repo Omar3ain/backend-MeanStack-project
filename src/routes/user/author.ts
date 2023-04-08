@@ -3,6 +3,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import RouteInterface from '@/utils/interfaces/router.interface';
 import authorController from '@/controllers/author';
 import httpException from '@/utils/exceptions/http.exception';
+import Pagination from '@/utils/interfaces/pagination.interface';
 
 class authorRouter implements RouteInterface {
     public router: Router = Router();
@@ -17,7 +18,8 @@ class authorRouter implements RouteInterface {
 
     private getAuthors = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
         try {
-            const authors = await authorController.getAllAuthor();
+            const { skip, limit }: Pagination = req.query
+            const authors = await authorController.getAllAuthor({ skip, limit });
             res.status(200).json(authors);
         } catch (error: any) {
             next(new httpException(401, error.message as string));
