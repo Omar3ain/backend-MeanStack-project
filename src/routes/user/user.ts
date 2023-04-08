@@ -43,7 +43,9 @@ class userRouter implements RouteInterface {
       const user = await userController.editUser(id, req.body);
       res.status(200).json({ status: 'Updated successfully', updatedUser: user });
     } catch (error: any) {
-      fs.unlinkSync(filePath);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
       next(new httpException(401, error.message as string));
     }
   }
