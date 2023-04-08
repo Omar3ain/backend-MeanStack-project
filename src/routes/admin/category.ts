@@ -15,7 +15,7 @@ class categoryAdminRouter implements RouteInterface {
 
   public upload: multer.Multer;
   constructor() {
-    this.upload = formUpload('uploads/books');
+    this.upload = formUpload('uploads/categories');
     this.initializeRoutes()
   }
 
