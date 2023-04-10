@@ -53,7 +53,11 @@ export default {
         return categories;
     },
     add: async (category: ICategory): Promise<ICategory> => {
-        category.creator = new mongoose.Types.ObjectId(category.creator);
+        try {
+            category.creator = new mongoose.Types.ObjectId(category.creator);
+        } catch (err) {
+            throw new Error("user dosn't exist");
+        }
         const newCategory: ICategory = await Category.create(category);
         if (newCategory) {
             return newCategory;

@@ -9,6 +9,11 @@ import CustomRequest from '@/utils/interfaces/request.interface';
 import Pagination from '@/utils/interfaces/pagination.interface';
 import validationMiddleware from '@/middlewares/validation.middleware';
 import validate from '@/utils/validations/book/schema';
+interface BookFilter {
+  name?: string;
+  category?: string;
+  author?: string;
+}
 class bookRouter implements RouteInterface {
   public router: Router = Router();
   public upload: multer.Multer;
@@ -19,7 +24,7 @@ class bookRouter implements RouteInterface {
 
   private initializeRoutes = () => {
     this.router.get('', this.getBooks);
-    this.router.get('/:id', verifyAuth, this.getBook);
+    this.router.get('/:id', this.getBook);
     this.router.get('/:id/reviews', verifyAuth, this.getReviews);
     this.router.patch('/:id/review', verifyAuth, this.upload.none(), validationMiddleware(validate.reviews), this.editReviews);
     this.router.patch('/:id/shelve', verifyAuth, this.upload.none(), validationMiddleware(validate.updateBook), this.changeBookShelve);
@@ -27,8 +32,9 @@ class bookRouter implements RouteInterface {
 
   private getBooks = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
-      const { skip, limit }: Pagination = req.query
-      const books = await bookController.getAllBooks({ skip, limit });
+      const { skip, limit }: Pagination = req.query;
+      const { name, category, author }: BookFilter = req.query;
+      const books = await bookController.searchBooks({ skip, limit }, { name, category, author });
       res.status(200).json(books);
     } catch (error: any) {
       next(new httpException(401, error.message as string));
