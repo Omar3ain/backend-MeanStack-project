@@ -22,7 +22,7 @@ class categoryUserRouter implements RouteInterface {
   }
   private getAllCategories = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
-      const categories = await categoryController.getAll(req.query, false)
+      const categories = await categoryController.getAll(req.query)
       res.status(200).json({ categories });
     } catch (error: any) {
       next(new httpException(401, error.message as string));

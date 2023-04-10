@@ -26,8 +26,8 @@ class authRouter implements RouteInterface {
     const avatar = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
     const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
     try {
-      const userToken = await userController.signUp({ firstName, lastName, email, password, avatar });
-      res.status(200).json(userToken);
+      const user = await userController.signUp({ firstName, lastName, email, password, avatar });
+      res.status(200).json(user);
     } catch (error: any) {
       fs.unlinkSync(filePath);
       next(new httpException(401, error.message as string));

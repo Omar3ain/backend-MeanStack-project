@@ -44,8 +44,10 @@ const userEditSchema = Joi.object({
   firstName: userRegisterSchema.extract('firstName').optional(),
   lastName: userRegisterSchema.extract('lastName').optional(),
   email: userRegisterSchema.extract('email').optional(),
-  password: userRegisterSchema.extract('password').optional(),
-});
+  oldPassword: Joi.string().optional(),
+  newPassword: userRegisterSchema.extract('password').optional(),
+  avatar: Joi.string().allow('').optional(),
+}); 
 
 
 export default { userRegisterSchema, userLoginSchema, userEditSchema };

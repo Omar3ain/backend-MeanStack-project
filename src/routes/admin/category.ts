@@ -22,14 +22,14 @@ class categoryAdminRouter implements RouteInterface {
   private initializeRoutes = () => {
     this.router.get('/', verifyAdmin, this.upload.none(), this.getAllCategories);
     this.router.post('/', this.upload.single("categoryCover"), validationMiddleware(categoryValidator.createCategory), this.addCategory);
-    this.router.delete('/:grategoryName', verifyAdmin, this.upload.none(), this.deleteGategory);
-    this.router.patch('/:grategoryName', verifyAdmin, this.upload.single("categoryCover"), this.editGategory);
-    this.router.get('/:grategoryName/books', verifyAdmin, this.upload.none(), this.getAllBooks);
+    this.router.delete('/:id', verifyAdmin , this.deleteGategory);
+    this.router.patch('/:id', verifyAdmin, this.upload.single("categoryCover"), this.editGategory);
+    this.router.get('/:categoryName/books', verifyAdmin, this.upload.none(), this.getAllBooks);
     this.router.get('/:id', verifyAdmin, this.upload.none(), this.getCategoryById);
   }
   private getAllCategories = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
-      const categories = await categoryController.getAll(req.query, true)
+      const categories = await categoryController.getAll(req.query)
       res.status(200).json({ categories });
     } catch (error: any) {
       next(new httpException(401, error.message as string));
@@ -37,11 +37,11 @@ class categoryAdminRouter implements RouteInterface {
   }
 
   private addCategory = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
-    const { name, creator } = req.body;
+    const { name } = req.body;
     const categoryCover = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
     const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
     try {
-      const category = await categoryController.add({ name, creator, cover: categoryCover });
+      const category = await categoryController.add({ name, categoryCover });
       res.status(200).json({ status: 201, category });
     } catch (error: any) {
       fs.unlinkSync(filePath);
@@ -50,9 +50,9 @@ class categoryAdminRouter implements RouteInterface {
   }
 
   private deleteGategory = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
-    const { grategoryName } = req.params;
+    const {id } = req.params;
     try {
-      const category = await categoryController.remove(grategoryName);
+      const category = await categoryController.remove(id);
       res.status(200).json({ status: 201, category });
     } catch (error: any) {
       next(new httpException(401, error.message as string));
@@ -60,14 +60,15 @@ class categoryAdminRouter implements RouteInterface {
   }
 
   private editGategory = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
-    const { grategoryName } = req.params;
-    const { name, creator } = req.body;
+    const {id} = req.params;
+    const { name } = req.body;
     const categoryCover = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
     const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
     try {
-      const category = await categoryController.edit(grategoryName, { name, creator, cover: categoryCover });
+      const category = await categoryController.edit(id, { name, categoryCover });
       res.status(200).json({ status: 201, category });
     } catch (error: any) {
+      fs.unlinkSync(filePath);
       next(new httpException(401, error.message as string));
     }
   }
