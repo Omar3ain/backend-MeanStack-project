@@ -81,7 +81,7 @@ const getUserBooks = async (id: string, obj: UserBookQuery) => {
     }
 }
 
-export const editShelve = async (id: string, obj: iBook) => {
+export const editShelve = async (id: string, obj: any) => {
     try {
         const updatedUser = await User.findByIdAndUpdate({ _id: id }, { $push: { books: obj } }, { new: true, runValidators: true }).exec();
         return updatedUser;

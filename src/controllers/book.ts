@@ -91,75 +91,75 @@ const getAllBooks = async () => {
 };
 
 const searchBooks = async (page: any, bookFilter: BookFilter) => {
-  try {
-      const myfilter: any = {};
-      const skip = (page - 1) * 10;
-      const limit = 10;
-      if (bookFilter.name)
-          myfilter.name = { $regex: ".*" + bookFilter.name + ".*" };
-      if (bookFilter.author)
-          myfilter["author.firstName"] = {
-              $regex: ".*" + bookFilter.author + ".*",
-          };
-      if (bookFilter.category)
-          myfilter["category.name"] = bookFilter.category;
+    try {
+        const myfilter: any = {};
+        const skip = (page - 1) * 10;
+        const limit = 10;
+        if (bookFilter.name)
+            myfilter.name = { $regex: ".*" + bookFilter.name + ".*" };
+        if (bookFilter.author)
+            myfilter["author.firstName"] = {
+                $regex: ".*" + bookFilter.author + ".*",
+            };
+        if (bookFilter.category)
+            myfilter["category.name"] = bookFilter.category;
 
-      const books = await Book.aggregate([
-          {
-              $lookup: {
-                from: "authors",
-                localField: "authorId",
-                foreignField: "_id",
-                as: "author",
-                pipeline: [
-                  {
-                    $project: {
-                      firstName: 1,
-                      lastName: 1,
-                    },
-                  },
-                ],
-              },
-          },
-          {
-              $lookup: {
-                from: "categories",
-                localField: "categoryId",
-                foreignField: "_id",
-                as: "category",
-                pipeline: [
-                  {
-                    $project: {
-                      name: 1,
-                    },
-                  },
-                ],
-              },
-          },
-          {
-            $project: {
-              name: 1,
-              author: { $arrayElemAt: ["$author", 0] },
-              category: { $arrayElemAt: ["$category", 0] },
-              categoryId: 1,
-              description: 1,
-              reviews: 1,
+        const books = await Book.aggregate([
+            {
+                $lookup: {
+                    from: "authors",
+                    localField: "authorId",
+                    foreignField: "_id",
+                    as: "author",
+                    pipeline: [
+                        {
+                            $project: {
+                                firstName: 1,
+                                lastName: 1,
+                            },
+                        },
+                    ],
+                },
             },
-          },
-          {
-            $match: myfilter
-          },
-          {
-            $skip:  skip
-          },
-          {
-            $limit:  limit
-          }
-      ]).exec();
-      return books;
-  } catch (error) {
-      throw new Error(error as string);
-  }
+            {
+                $lookup: {
+                    from: "categories",
+                    localField: "categoryId",
+                    foreignField: "_id",
+                    as: "category",
+                    pipeline: [
+                        {
+                            $project: {
+                                name: 1,
+                            },
+                        },
+                    ],
+                },
+            },
+            {
+                $project: {
+                    name: 1,
+                    author: { $arrayElemAt: ["$author", 0] },
+                    category: { $arrayElemAt: ["$category", 0] },
+                    categoryId: 1,
+                    description: 1,
+                    reviews: 1,
+                },
+            },
+            {
+                $match: myfilter
+            },
+            {
+                $skip: skip
+            },
+            {
+                $limit: limit
+            }
+        ]).exec();
+        return books;
+    } catch (error) {
+        throw new Error(error as string);
+    }
 };
 const searchCountBooks = async (page: any, bookFilter: BookFilter) => {
     try {
@@ -174,58 +174,58 @@ const searchCountBooks = async (page: any, bookFilter: BookFilter) => {
             };
         if (bookFilter.category)
             myfilter["category.name"] = bookFilter.category;
-  
+
         const lengthOfBooks = await Book.aggregate([
             {
                 $lookup: {
-                  from: "authors",
-                  localField: "authorId",
-                  foreignField: "_id",
-                  as: "author",
-                  pipeline: [
-                    {
-                      $project: {
-                        firstName: 1,
-                        lastName: 1,
-                      },
-                    },
-                  ],
+                    from: "authors",
+                    localField: "authorId",
+                    foreignField: "_id",
+                    as: "author",
+                    pipeline: [
+                        {
+                            $project: {
+                                firstName: 1,
+                                lastName: 1,
+                            },
+                        },
+                    ],
                 },
             },
             {
                 $lookup: {
-                  from: "categories",
-                  localField: "categoryId",
-                  foreignField: "_id",
-                  as: "category",
-                  pipeline: [
-                    {
-                      $project: {
-                        name: 1,
-                      },
-                    },
-                  ],
+                    from: "categories",
+                    localField: "categoryId",
+                    foreignField: "_id",
+                    as: "category",
+                    pipeline: [
+                        {
+                            $project: {
+                                name: 1,
+                            },
+                        },
+                    ],
                 },
             },
             {
-              $project: {
-                name: 1,
-                author: { $arrayElemAt: ["$author", 0] },
-                category: { $arrayElemAt: ["$category", 0] },
-                categoryId: 1,
-                description: 1,
-                reviews: 1,
-              },
+                $project: {
+                    name: 1,
+                    author: { $arrayElemAt: ["$author", 0] },
+                    category: { $arrayElemAt: ["$category", 0] },
+                    categoryId: 1,
+                    description: 1,
+                    reviews: 1,
+                },
             },
             {
-              $match: myfilter
+                $match: myfilter
             }
         ]).count('_id').exec();
         return lengthOfBooks;
     } catch (error) {
         throw new Error(error as string);
     }
-  };
+};
 
 // @desc get a book details
 // @access public
@@ -247,11 +247,15 @@ const editBookShelve = async (
     userId: string
 ) => {
     try {
-        const book = await getBookDetails(bookid);
         const user: IUser = await getUserDetails(userId);
-        const { reviews, ...bookWithoutReviews } = book!.toObject();
+        const book = await getBookDetails(bookid);
+
 
         if (book) {
+            const userReview = book.reviews?.find(review => review.userId.toString() == userId);
+            const userRating = userReview ? userReview.rating : null;
+            const { reviews, ...bookWithoutReviews } = book!.toObject();
+            const userbook = {...bookWithoutReviews, rating: userRating}
             const bookExistsInUserBooks = user.books?.some((userBook: any) =>
                 userBook._id.equals(book._id)
             );
@@ -262,8 +266,8 @@ const editBookShelve = async (
                     shelve: status,
                 });
             } else {
-                bookWithoutReviews!.shelve = status;
-                return editShelve(userId, bookWithoutReviews);
+                userbook!.shelve = status;
+                return editShelve(userId, userbook);
             }
         }
     } catch (error) {
