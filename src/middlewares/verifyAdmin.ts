@@ -14,11 +14,17 @@ const verifyAdmin = async (req: Request, res: Response, next: NextFunction) => {
         const decoded: string | JwtPayload = jwt.verify(token, process.env.TOKEN_SECRET as jwt.Secret) as JwtPayload;
         const admin = await User.findById(decoded.userId);
         if (admin) {
-            if (admin.isAdmin) {
-                (<any>req).admin = admin;
-                next();
+            const currentTime = Math.floor(Date.now() / 1000);
+            const tokenExpirationTime = (decoded.exp as number) * 86400;
+            if (tokenExpirationTime < currentTime) {
+                next(new httpException(401, "Access denied, Token has expired!"));
             } else {
-                next(new httpException(401, "You are not an Administrator"));
+                if (admin.isAdmin) {
+                    (<any>req).admin = admin;
+                    next();
+                } else {
+                    next(new httpException(401, "You are not an Administrator"));
+                }
             }
         } else {
             next(new httpException(401, "Admin doesn't exist, Invalid!"));
