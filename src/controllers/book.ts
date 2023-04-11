@@ -90,9 +90,11 @@ const getAllBooks = async () => {
     }
 };
 
-const searchBooks = async (obj: Pagination, bookFilter: BookFilter) => {
+const searchBooks = async (page: any, bookFilter: BookFilter) => {
   try {
       const myfilter: any = {};
+      const skip = (page - 1) * 10;
+      const limit = 10;
       if (bookFilter.name)
           myfilter.name = { $regex: ".*" + bookFilter.name + ".*" };
       if (bookFilter.author)
@@ -148,10 +150,10 @@ const searchBooks = async (obj: Pagination, bookFilter: BookFilter) => {
             $match: myfilter
           },
           {
-            $limit: obj.limit as number || 10
+            $skip:  skip
           },
           {
-            $skip: obj.skip as number || 0
+            $limit:  limit
           }
       ]).exec();
       return books;
@@ -159,7 +161,71 @@ const searchBooks = async (obj: Pagination, bookFilter: BookFilter) => {
       throw new Error(error as string);
   }
 };
-
+const searchCountBooks = async (page: any, bookFilter: BookFilter) => {
+    try {
+        const myfilter: any = {};
+        const skip = (page - 1) * 10;
+        const limit = 10;
+        if (bookFilter.name)
+            myfilter.name = { $regex: ".*" + bookFilter.name + ".*" };
+        if (bookFilter.author)
+            myfilter["author.firstName"] = {
+                $regex: ".*" + bookFilter.author + ".*",
+            };
+        if (bookFilter.category)
+            myfilter["category.name"] = bookFilter.category;
+  
+        const lengthOfBooks = await Book.aggregate([
+            {
+                $lookup: {
+                  from: "authors",
+                  localField: "authorId",
+                  foreignField: "_id",
+                  as: "author",
+                  pipeline: [
+                    {
+                      $project: {
+                        firstName: 1,
+                        lastName: 1,
+                      },
+                    },
+                  ],
+                },
+            },
+            {
+                $lookup: {
+                  from: "categories",
+                  localField: "categoryId",
+                  foreignField: "_id",
+                  as: "category",
+                  pipeline: [
+                    {
+                      $project: {
+                        name: 1,
+                      },
+                    },
+                  ],
+                },
+            },
+            {
+              $project: {
+                name: 1,
+                author: { $arrayElemAt: ["$author", 0] },
+                category: { $arrayElemAt: ["$category", 0] },
+                categoryId: 1,
+                description: 1,
+                reviews: 1,
+              },
+            },
+            {
+              $match: myfilter
+            }
+        ]).count('_id').exec();
+        return lengthOfBooks;
+    } catch (error) {
+        throw new Error(error as string);
+    }
+  };
 
 // @desc get a book details
 // @access public
@@ -262,5 +328,6 @@ export default {
     editBookShelve,
     updatedReview,
     getReviews,
-    searchBooks
+    searchBooks,
+    searchCountBooks
 };
