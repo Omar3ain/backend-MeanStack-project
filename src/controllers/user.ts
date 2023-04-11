@@ -68,7 +68,12 @@ const editUser = async (id: string, obj: IUserUpdate) => {
 const getUserBooks = async (id: string, obj: UserBookQuery) => {
     try {
         const user = await getUserDetails(id);
-        const books = user.books?.filter((book: iBook) => book.shelve === obj.shelve);
+        let books: iBook[] | undefined;
+        if (obj.shelve == 'all') {
+            books = user.books;
+        } else {
+            books = user.books?.filter((book: iBook) => book.shelve === obj.shelve);
+        }
         const paginatedBooks = books!.slice(Number(obj.skip), Number(obj.skip) + Number(obj.limit));
         return paginatedBooks;
     } catch (error) {
@@ -96,4 +101,4 @@ export const updateBookInUser = async (id: string, obj: BookUpdate) => {
 }
 
 
-export default { signUp, login, getUserDetails, editUser, getUserBooks, editShelve };
+export default { signUp, login, getUserDetails, editUser, getUserBooks, editShelve }; 
