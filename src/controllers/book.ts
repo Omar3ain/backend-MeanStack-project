@@ -147,14 +147,14 @@ const searchBooks = async (page: any, bookFilter: BookFilter) => {
                 },
             },
             {
-                $match: myfilter
+                $match: myfilter,
             },
             {
-                $skip: skip
+                $skip: skip,
             },
             {
-                $limit: limit
-            }
+                $limit: limit,
+            },
         ]).exec();
         return books;
     } catch (error) {
@@ -218,9 +218,11 @@ const searchCountBooks = async (page: any, bookFilter: BookFilter) => {
                 },
             },
             {
-                $match: myfilter
-            }
-        ]).count('_id').exec();
+                $match: myfilter,
+            },
+            { $group: { _id: null, count: { $sum: 1 } } },
+            { $project: { _id: 0 } },
+        ]).exec();
         return lengthOfBooks;
     } catch (error) {
         throw new Error(error as string);
@@ -250,12 +252,13 @@ const editBookShelve = async (
         const user: IUser = await getUserDetails(userId);
         const book = await getBookDetails(bookid);
 
-
         if (book) {
-            const userReview = book.reviews?.find(review => review.userId.toString() == userId);
+            const userReview = book.reviews?.find(
+                (review) => review.userId.toString() == userId
+            );
             const userRating = userReview ? userReview.rating : null;
             const { reviews, ...bookWithoutReviews } = book!.toObject();
-            const userbook = {...bookWithoutReviews, rating: userRating}
+            const userbook = { ...bookWithoutReviews, rating: userRating };
             const bookExistsInUserBooks = user.books?.some((userBook: any) =>
                 userBook._id.equals(book._id)
             );
@@ -333,5 +336,5 @@ export default {
     updatedReview,
     getReviews,
     searchBooks,
-    searchCountBooks
+    searchCountBooks,
 };

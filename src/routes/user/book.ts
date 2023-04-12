@@ -24,7 +24,7 @@ class bookRouter implements RouteInterface {
 
   private initializeRoutes = () => {
     this.router.get('', this.getBooks);
-    this.router.get('/getCountSearch', this.getBooks);
+    this.router.get('/getCountSearch', this.searchCountBooks);
     this.router.get('/:id', this.getBook);
     this.router.get('/:id/reviews', verifyAuth, this.getReviews);
     this.router.patch('/:id/review', verifyAuth, this.upload.none(), validationMiddleware(validate.reviews), this.editReviews);
