@@ -144,6 +144,7 @@ const searchBooks = async (page: any, bookFilter: BookFilter) => {
                     categoryId: 1,
                     description: 1,
                     reviews: 1,
+                    coverPhoto: 1
                 },
             },
             {
