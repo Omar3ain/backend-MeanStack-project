@@ -14,6 +14,8 @@ export interface IUserUpdate {
     lastName?: string,
     email?: string,
     password?: string,
+    oldPassword?: string,
+    newPassword?: string,
     avatar?: string,
     books?: [],
     isAdmin?: boolean

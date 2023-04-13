@@ -9,6 +9,11 @@ import CustomRequest from '@/utils/interfaces/request.interface';
 import Pagination from '@/utils/interfaces/pagination.interface';
 import validationMiddleware from '@/middlewares/validation.middleware';
 import validate from '@/utils/validations/book/schema';
+interface BookFilter {
+  name?: string;
+  category?: string;
+  author?: string;
+}
 class bookRouter implements RouteInterface {
   public router: Router = Router();
   public upload: multer.Multer;
@@ -19,22 +24,37 @@ class bookRouter implements RouteInterface {
 
   private initializeRoutes = () => {
     this.router.get('', this.getBooks);
-    this.router.get('/:id', verifyAuth, this.getBook);
-
+    this.router.get('/getCountSearch', this.searchCountBooks);
+    this.router.get('/:id', this.getBook);
     this.router.get('/:id/reviews', verifyAuth, this.getReviews);
     this.router.patch('/:id/review', verifyAuth, this.upload.none(), validationMiddleware(validate.reviews), this.editReviews);
     this.router.patch('/:id/shelve', verifyAuth, this.upload.none(), validationMiddleware(validate.updateBook), this.changeBookShelve);
+    this.router.patch('/:id/rate', verifyAuth, this.upload.none(), validationMiddleware(validate.rates), this.editRatings);
   }
 
   private getBooks = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
-      const { skip, limit }: Pagination = req.query
-      const books = await bookController.getAllBooks({ skip, limit });
+      const page = req.query.page || 1;
+      const { name, category, author }: BookFilter = req.query;
+      const books = await bookController.searchBooks(page, { name, category, author });
       res.status(200).json(books);
     } catch (error: any) {
       next(new httpException(401, error.message as string));
     }
   }
+
+  private searchCountBooks = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+
+    try {
+      const page = req.query.page || 1;
+      const { name, category, author }: BookFilter = req.query;
+      const books = await bookController.searchCountBooks(page, { name, category, author });
+      res.status(200).json(books);
+    } catch (error: any) {
+      next(new httpException(401, error.message as string));
+    }
+  };
+
   private getBook = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
       const book = await bookController.getBookDetails(req.params.id);
@@ -74,7 +94,16 @@ class bookRouter implements RouteInterface {
       next(new httpException(401, error.message as string));
     }
   }
-
+  private editRatings = async (req: CustomRequest, res: Response, next: NextFunction): Promise<Response | void> => {
+    try {
+      const bookId: string = req.params.id;
+      req.body.userId = req.user?._id;
+      const rates = await bookController.updateRating(bookId, req.body);
+      res.status(200).json(rates);
+    } catch (error: any) {
+      next(new httpException(400, error.message as string));
+    }
+  }
 }
 
 export default bookRouter;
