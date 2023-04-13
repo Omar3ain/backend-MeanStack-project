@@ -20,6 +20,7 @@ class bookRouter implements RouteInterface {
   private initializeRoutes = () => {
     this.router.get('', this.getBooks);
     this.router.get('/:id', verifyAuth, this.getBook);
+
     this.router.get('/:id/reviews', verifyAuth, this.getReviews);
     this.router.patch('/:id/review', verifyAuth, this.upload.none(), validationMiddleware(validate.reviews), this.editReviews);
     this.router.patch('/:id/shelve', verifyAuth, this.upload.none(), validationMiddleware(validate.updateBook), this.changeBookShelve);
@@ -73,6 +74,7 @@ class bookRouter implements RouteInterface {
       next(new httpException(401, error.message as string));
     }
   }
+
 }
 
 export default bookRouter;

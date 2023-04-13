@@ -1,4 +1,5 @@
 import Author from "@/models/Author";
+import Book from "@/models/Book";
 import IAuthor, { AuthorUpdate } from "@/utils/interfaces/author.interface";
 import Pagination from "@/utils/interfaces/pagination.interface";
 import fs from 'fs';
@@ -15,10 +16,8 @@ const createAuthor = async (obj: IAuthor, photo: string) => {
     }
 }
 
-const getAllAuthor = async (obj: Pagination) => {
-    const author = await Author.find().skip(Number(obj.skip) || 0)
-        .limit(Number(obj.limit) || 3)
-        .exec();
+const getAllAuthor = async () => {
+    const author = await Author.find();
     return author;
 }
 
@@ -74,6 +73,7 @@ const deleteAuthorById = async (id: string) => {
         throw new Error(error as string);
     }
 }
+
 
 
 

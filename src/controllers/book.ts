@@ -129,4 +129,21 @@ const getReviews = async (bookId: string) => {
     throw new Error(error as string);
   }
 }
+// const getAuthorBooks = async (authorId: string) => {
+//   try {
+
+//     const authorBooks = await Book.findOne({ authorId: authorId })
+//     if (authorBooks) {
+//       return authorBooks
+//     }
+//     else {
+//       throw new Error("author dosn't have any books yet")
+//     }
+//   }
+//   catch (error) {
+
+
+//     throw new Error(error as string);
+//   }
+
 export default { createBook, deleteBook, editBook, getAllBooks, getBookDetails, editBookShelve, updatedReview, getReviews };

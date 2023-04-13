@@ -14,12 +14,13 @@ class authorRouter implements RouteInterface {
         this.router.get('/', this.getAuthors);
         this.router.get('/:id', this.getAuthorById);
 
+
     }
 
     private getAuthors = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
         try {
-            const { skip, limit }: Pagination = req.query
-            const authors = await authorController.getAllAuthor({ skip, limit });
+
+            const authors = await authorController.getAllAuthor();
             res.status(200).json(authors);
         } catch (error: any) {
             next(new httpException(401, error.message as string));
@@ -36,6 +37,8 @@ class authorRouter implements RouteInterface {
             next(new httpException(401, error.massage as string))
         }
     }
+
+
 
 }
 

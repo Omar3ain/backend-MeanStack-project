@@ -19,7 +19,7 @@ class bookAdminRouter implements RouteInterface {
   }
 
   private initializeRoutes = () => {
-    this.router.post('/', verifyAdmin, this.upload.single("coverPhoto"), validationMiddleware(validate.createBook), this.makeBook);
+    this.router.post('/', this.upload.single("coverPhoto"), validationMiddleware(validate.createBook), this.makeBook);
     this.router.delete('/:id', verifyAdmin, this.deleteBook);
     this.router.patch(`/:id`, verifyAdmin, this.upload.single("coverPhoto"), validationMiddleware(validate.updateBook), this.update);
   }
