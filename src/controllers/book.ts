@@ -317,6 +317,44 @@ const updatedReview = async (bookId: string, update: Review) => {
         throw new Error(error as string);
     }
 };
+type Rating = {
+ rating: number;
+ userId: string;
+}
+
+const editRate = async (bookId: string, rating: Rating) => {
+    try {
+        const updatedRate = await Book.findOneAndUpdate(
+            { _id: bookId, "reviews.userId": rating.userId },
+            {
+                $set: {
+                    "reviews.$.rating": rating.rating,
+                },
+            },
+            { new: true }
+        );
+        return updatedRate;
+    } catch (error) {
+        throw new Error(error as string);
+    }
+};
+
+const updateRating = async (bookId : string, rating: Rating) => {
+    try {
+        const book = await getBookDetails(bookId);
+        if (book) {
+            const userReviewExistInBook = book.reviews?.some((review: any) =>
+            review.userId.equals(rating.userId)
+            );
+            if (userReviewExistInBook) {
+                return editRate(bookId, rating);
+            }
+        }
+    } catch (error) {
+        throw new Error(error as string);
+    }
+}
+
 const getReviews = async (bookId: string) => {
     try {
         return await Book.findById(
@@ -335,6 +373,7 @@ export default {
     getBookDetails,
     editBookShelve,
     updatedReview,
+    updateRating,
     getReviews,
     searchBooks,
     searchCountBooks,

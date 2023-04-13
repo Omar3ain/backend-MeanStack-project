@@ -6,6 +6,10 @@ const reviews = joi.object({
   comment: joi.string().required()
 });
 
+const rates = joi.object({
+  rating: joi.number().required().min(0).max(5)
+})
+
 const createBook = joi.object({
   coverPhoto: joi.string(),
   name: joi.string().min(5).required(),
@@ -25,4 +29,4 @@ const updateBook = joi.object().keys({
 });
 
 
-export default { createBook, updateBook, reviews };
+export default { createBook, updateBook, reviews , rates};

@@ -29,6 +29,7 @@ class bookRouter implements RouteInterface {
     this.router.get('/:id/reviews', verifyAuth, this.getReviews);
     this.router.patch('/:id/review', verifyAuth, this.upload.none(), validationMiddleware(validate.reviews), this.editReviews);
     this.router.patch('/:id/shelve', verifyAuth, this.upload.none(), validationMiddleware(validate.updateBook), this.changeBookShelve);
+    this.router.patch('/:id/rate', verifyAuth, this.upload.none(), validationMiddleware(validate.rates), this.editRatings);
   }
 
   private getBooks = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
@@ -91,6 +92,16 @@ class bookRouter implements RouteInterface {
       res.status(200).json(reviews)
     } catch (error: any) {
       next(new httpException(401, error.message as string));
+    }
+  }
+  private editRatings = async (req: CustomRequest, res: Response, next: NextFunction): Promise<Response | void> => {
+    try {
+      const bookId: string = req.params.id;
+      req.body.userId =  req.user?._id;
+      const rates = await bookController.updateRating(bookId, req.body);
+      res.status(200).json(rates);
+    } catch (error: any) {
+      next(new httpException(400, error.message as string));
     }
   }
 }
