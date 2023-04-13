@@ -224,7 +224,7 @@ const searchCountBooks = async (page: any, bookFilter: BookFilter) => {
             { $group: { _id: null, count: { $sum: 1 } } },
             { $project: { _id: 0 } },
         ]).exec();
-        return lengthOfBooks;
+        return lengthOfBooks[0].count;
     } catch (error) {
         throw new Error(error as string);
     }
