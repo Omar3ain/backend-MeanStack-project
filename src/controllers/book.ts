@@ -1,5 +1,7 @@
 import Review from "@/utils/interfaces/review.interface";
 import Book from "@/models/Book";
+import User from "@/models/User";
+import mongoose from "mongoose";
 import fs from "fs";
 
 import iBook, { BookUpdate } from "@/utils/interfaces/book.interface";
@@ -334,7 +336,16 @@ const editRate = async (bookId: string, rating: Rating) => {
             },
             { new: true }
         );
-        return updatedRate;
+        const bID = new mongoose.Types.ObjectId(bookId);
+        const UpdateBookRateInUser = await User.findOneAndUpdate(
+            { _id: rating.userId, "books._id": bID },
+            {
+                $set: {
+                    "books.$.rating": new Number(rating.rating),
+                },
+            },
+        );
+        return updatedRate || UpdateBookRateInUser;
     } catch (error) {
         throw new Error(error as string);
     }
