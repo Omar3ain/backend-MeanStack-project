@@ -85,6 +85,7 @@ const getUserBooks = async (id: string, obj: UserBookQuery) => {
 
 export const editShelve = async (id: string, obj: any) => {
     try {
+        console.log(obj)
         const updatedUser = await User.findByIdAndUpdate({ _id: id }, { $push: { books: obj } }, { new: true, runValidators: true }).exec();
         return updatedUser;
     } catch (error) {
@@ -94,6 +95,7 @@ export const editShelve = async (id: string, obj: any) => {
 
 export const updateBookInUser = async (id: string, obj: BookUpdate) => {
     try {
+        console.log(obj)
         const updatedUser = await User.findOneAndUpdate({ _id: id, 'books._id': obj._id }, { $set: { 'books.$.shelve': obj.shelve } }, { new: true });
         return updatedUser;
     } catch (error) {

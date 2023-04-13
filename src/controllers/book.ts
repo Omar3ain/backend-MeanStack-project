@@ -350,11 +350,13 @@ const editRate = async (bookId: string, rating: Rating) => {
             { new: true }
         );
         const bID = new mongoose.Types.ObjectId(bookId);
+        const avgRate =  Math.floor(updatedRate?.reviews?.reduce((average: any, review:any) => average + review.rating, 0) / updatedRate?.reviews?.length!);
         const UpdateBookRateInUser = await User.findOneAndUpdate(
             { _id: rating.userId, "books._id": bID },
             {
                 $set: {
                     "books.$.rating": new Number(rating.rating),
+                    "books.$.avgRate": avgRate
                 },
             },
         );
@@ -390,6 +392,18 @@ const getReviews = async (bookId: string) => {
         throw new Error(error as string);
     }
 };
+
+const getAverage = async (bookId: string) => {
+    try {
+        const book = await Book.findById(
+            { _id: bookId },
+            { reviews: 1, _id: 0 }
+        ).exec();
+    } catch (error) {
+        throw new Error(error as string);
+    }
+};
+
 export default {
     createBook,
     deleteBook,
