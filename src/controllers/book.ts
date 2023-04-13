@@ -293,6 +293,19 @@ const editReview = async (bookId: string, update: Review) => {
             },
             { new: true }
         );
+        
+        const bID = new mongoose.Types.ObjectId(bookId);
+        const UpdateBookReviewInUser = await User.findOneAndUpdate(
+            { _id: update.userId, "books._id": bID },
+            {
+                $set: {
+                    "books.$.comment": update.comment,
+                    "books.$.rating": new Number(update.rating),
+                },
+            },
+        );
+        
+        console.log(UpdateBookReviewInUser);
         return updatedReview;
     } catch (error) {
         throw new Error(error as string);
