@@ -12,6 +12,8 @@ const login = async (obj: IUser) => {
         const hashPassword = await compare(password, user.password);
         if (hashPassword) {
             return createToken(user._id.toString(), user.email, user.isAdmin!);
+        }else{
+            throw new Error("Wrong E-mail or Password");
         }
     } else {
         throw new Error("Wrong E-mail or Password");

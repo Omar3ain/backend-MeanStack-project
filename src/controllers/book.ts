@@ -259,7 +259,8 @@ const editBookShelve = async (
             );
             const userRating = userReview ? userReview.rating : null;
             const { reviews, ...bookWithoutReviews } = book!.toObject();
-            const userbook = { ...bookWithoutReviews, rating: userRating };
+            const avgRate =  Math.floor(reviews?.reduce((average: any, review:any) => average + review.rating, 0) / reviews!.length);
+            const userbook = { ...bookWithoutReviews, rating: userRating , avgRate };
             const bookExistsInUserBooks = user.books?.some((userBook: any) =>
                 userBook._id.equals(book._id)
             );
