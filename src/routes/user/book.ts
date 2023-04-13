@@ -30,6 +30,7 @@ class bookRouter implements RouteInterface {
     this.router.patch('/:id/review', verifyAuth, this.upload.none(), validationMiddleware(validate.reviews), this.editReviews);
     this.router.patch('/:id/shelve', verifyAuth, this.upload.none(), validationMiddleware(validate.updateBook), this.changeBookShelve);
     this.router.patch('/:id/rate', verifyAuth, this.upload.none(), validationMiddleware(validate.rates), this.editRatings);
+    this.router.get('/populars/books', this.getPopularEntities);
   }
 
   private getBooks = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
@@ -104,6 +105,16 @@ class bookRouter implements RouteInterface {
       next(new httpException(400, error.message as string));
     }
   }
+
+ private getPopularEntities = async (req: CustomRequest, res: Response, next: NextFunction): Promise<Response | void> => {
+  try {
+    const pops = await bookController.getPopulars();
+    res.status(200).json(pops);
+  } catch (error: any) {
+    next(new httpException(400, error.message as string));
+  }
+ }
 }
+
 
 export default bookRouter;

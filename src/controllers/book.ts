@@ -261,8 +261,8 @@ const editBookShelve = async (
             );
             const userRating = userReview ? userReview.rating : null;
             const { reviews, ...bookWithoutReviews } = book!.toObject();
-            const avgRate =  Math.floor(reviews?.reduce((average: any, review:any) => average + review.rating, 0) / reviews!.length);
-            const userbook = { ...bookWithoutReviews, rating: userRating , avgRate };
+            const avgRate = Math.floor(reviews?.reduce((average: any, review: any) => average + review.rating, 0) / reviews!.length);
+            const userbook = { ...bookWithoutReviews, rating: userRating, avgRate };
             const bookExistsInUserBooks = user.books?.some((userBook: any) =>
                 userBook._id.equals(book._id)
             );
@@ -274,7 +274,12 @@ const editBookShelve = async (
                 });
             } else {
                 userbook!.shelve = status;
-                return editShelve(userId, userbook);
+                const editedShelve = await editShelve(userId, userbook);
+                await Book.findByIdAndUpdate({ _id: book._id }, { $inc: { popularity: 1 } }, {
+                    new: true,
+                    runValidators: true,
+                }).exec();
+                return editedShelve;
             }
         }
     } catch (error) {
@@ -293,7 +298,7 @@ const editReview = async (bookId: string, update: Review) => {
             },
             { new: true }
         );
-        
+
         const bID = new mongoose.Types.ObjectId(bookId);
         const UpdateBookReviewInUser = await User.findOneAndUpdate(
             { _id: update.userId, "books._id": bID },
@@ -304,8 +309,6 @@ const editReview = async (bookId: string, update: Review) => {
                 },
             },
         );
-        
-        console.log(UpdateBookReviewInUser);
         return updatedReview;
     } catch (error) {
         throw new Error(error as string);
@@ -334,8 +337,8 @@ const updatedReview = async (bookId: string, update: Review) => {
     }
 };
 type Rating = {
- rating: number;
- userId: string;
+    rating: number;
+    userId: string;
 }
 
 const editRate = async (bookId: string, rating: Rating) => {
@@ -364,12 +367,59 @@ const editRate = async (bookId: string, rating: Rating) => {
     }
 };
 
-const updateRating = async (bookId : string, rating: Rating) => {
+const getPopulars = async () => {
+    try {
+        const popBooks = await Book.aggregate([
+            { $sort: { popularity: -1 } },
+            { $limit: 3 },
+            { $project: { name: 1, coverPhoto:1, authorId: 1, categoryId: 1, avgRating: { $avg: "$reviews.rating" } } },
+            { $limit: 3 },
+            {$lookup: {
+                from: "categories",
+                localField: "categoryId",
+                foreignField: "_id",
+                as: "category",
+                pipeline: [
+                    {
+                        $project: {
+                            name: 1,
+                            categoryCover:1,
+                        },
+                    },
+                ],
+            },},
+            {$lookup: {
+                from: "authors",
+                localField: "authorId",
+                foreignField: "_id",
+                as: "author",
+                pipeline: [
+                    {
+                        $project: {
+                            firstName: 1,
+                            lastName: 1,
+                            photo:1,
+                        },
+                    },
+                ],
+            },},
+            { $project: { name: 1, coverPhoto: 1, author: 1, category: 1, avgRating: 1 } },
+          ]);
+
+          if(popBooks) {
+            return popBooks;
+          }
+    } catch (error) {
+        throw new Error(error as string);
+    }
+}
+
+const updateRating = async (bookId: string, rating: Rating) => {
     try {
         const book = await getBookDetails(bookId);
         if (book) {
             const userReviewExistInBook = book.reviews?.some((review: any) =>
-            review.userId.equals(rating.userId)
+                review.userId.equals(rating.userId)
             );
             if (userReviewExistInBook) {
                 return editRate(bookId, rating);
@@ -402,4 +452,5 @@ export default {
     getReviews,
     searchBooks,
     searchCountBooks,
+    getPopulars,
 };

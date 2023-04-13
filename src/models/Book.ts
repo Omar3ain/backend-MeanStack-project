@@ -31,6 +31,7 @@ const bookSchema = new Schema<iBook>({
     ref: 'Category',
     required: true,
   },
+  popularity: { type: Number, default: 0 },
   description: { type: String, required: true },
   reviews: { type: [reviewSchema], default: [] },
 }, { timestamps: true });
