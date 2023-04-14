@@ -29,7 +29,9 @@ class authRouter implements RouteInterface {
       const user = await userController.signUp({ firstName, lastName, email, password, avatar });
       res.status(200).json(user);
     } catch (error: any) {
-      fs.unlinkSync(filePath);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
       next(new httpException(400, error.message as string));
     }
   }

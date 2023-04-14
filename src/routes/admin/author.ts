@@ -34,7 +34,9 @@ class AuthorAdminRouter implements RouteInterface {
             const createdAuthor = await authorController.createAuthor(req.body, photo);
             res.status(200).json({ createdAuthor });
         } catch (err: any) {
-            fs.unlinkSync(filePath);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
             next(new httpException(400, err.massage as string));
         }
 
@@ -49,7 +51,9 @@ class AuthorAdminRouter implements RouteInterface {
             const updatedAuthor = await authorController.updateAuthor(id, req.body);
             res.status(200).json(updatedAuthor);
         } catch (err: any) {
-            fs.unlinkSync(filePath);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
             next(new httpException(400, "Cant edit the Author please try again."));
         }
 
@@ -62,6 +66,7 @@ class AuthorAdminRouter implements RouteInterface {
             res.status(200).json(deleteAuthor)
         }
         catch (err: any) {
+
             next(new httpException(400, err.massage as string));
         }
     }

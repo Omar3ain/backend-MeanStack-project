@@ -44,7 +44,9 @@ class categoryAdminRouter implements RouteInterface {
       const category = await categoryController.add({ name, categoryCover });
       res.status(200).json({ status: 201, category });
     } catch (error: any) {
-      fs.unlinkSync(filePath);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
       next(new httpException(400, error.message as string));
     }
   }
@@ -68,7 +70,9 @@ class categoryAdminRouter implements RouteInterface {
       const category = await categoryController.edit(id, { name, categoryCover });
       res.status(200).json({ status: 201, category });
     } catch (error: any) {
-      fs.unlinkSync(filePath);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
       next(new httpException(400, error.message as string));
     }
   }
