@@ -146,7 +146,7 @@ const searchBooks = async (page: any, bookFilter: BookFilter) => {
                     categoryId: 1,
                     description: 1,
                     reviews: 1,
-                    coverPhoto: 1
+                    coverPhoto: 1,
                 },
             },
             {
@@ -261,8 +261,17 @@ const editBookShelve = async (
             );
             const userRating = userReview ? userReview.rating : null;
             const { reviews, ...bookWithoutReviews } = book!.toObject();
-            const avgRate =  Math.floor(reviews?.reduce((average: any, review:any) => average + review.rating, 0) / reviews!.length);
-            const userbook = { ...bookWithoutReviews, rating: userRating , avgRate };
+            const avgRate = Math.floor(
+                reviews?.reduce(
+                    (average: any, review: any) => average + review.rating,
+                    0
+                ) / reviews!.length
+            );
+            const userbook = {
+                ...bookWithoutReviews,
+                rating: userRating,
+                avgRate,
+            };
             const bookExistsInUserBooks = user.books?.some((userBook: any) =>
                 userBook._id.equals(book._id)
             );
@@ -293,7 +302,7 @@ const editReview = async (bookId: string, update: Review) => {
             },
             { new: true }
         );
-        
+
         const bID = new mongoose.Types.ObjectId(bookId);
         const UpdateBookReviewInUser = await User.findOneAndUpdate(
             { _id: update.userId, "books._id": bID },
@@ -302,9 +311,9 @@ const editReview = async (bookId: string, update: Review) => {
                     "books.$.comment": update.comment,
                     "books.$.rating": new Number(update.rating),
                 },
-            },
+            }
         );
-        
+
         console.log(UpdateBookReviewInUser);
         return updatedReview;
     } catch (error) {
@@ -334,9 +343,9 @@ const updatedReview = async (bookId: string, update: Review) => {
     }
 };
 type Rating = {
- rating: number;
- userId: string;
-}
+    rating: number;
+    userId: string;
+};
 
 const editRate = async (bookId: string, rating: Rating) => {
     try {
@@ -350,15 +359,20 @@ const editRate = async (bookId: string, rating: Rating) => {
             { new: true }
         );
         const bID = new mongoose.Types.ObjectId(bookId);
-        const avgRate =  Math.floor(updatedRate?.reviews?.reduce((average: any, review:any) => average + review.rating, 0) / updatedRate?.reviews?.length!);
+        const avgRate = Math.floor(
+            updatedRate?.reviews?.reduce(
+                (average: any, review: any) => average + review.rating,
+                0
+            ) / updatedRate?.reviews?.length!
+        );
         const UpdateBookRateInUser = await User.findOneAndUpdate(
             { _id: rating.userId, "books._id": bID },
             {
                 $set: {
                     "books.$.rating": new Number(rating.rating),
-                    "books.$.avgRate": avgRate
+                    "books.$.avgRate": avgRate,
                 },
-            },
+            }
         );
         return updatedRate || UpdateBookRateInUser;
     } catch (error) {
@@ -366,12 +380,12 @@ const editRate = async (bookId: string, rating: Rating) => {
     }
 };
 
-const updateRating = async (bookId : string, rating: Rating) => {
+const updateRating = async (bookId: string, rating: Rating) => {
     try {
         const book = await getBookDetails(bookId);
         if (book) {
             const userReviewExistInBook = book.reviews?.some((review: any) =>
-            review.userId.equals(rating.userId)
+                review.userId.equals(rating.userId)
             );
             if (userReviewExistInBook) {
                 return editRate(bookId, rating);
@@ -380,7 +394,7 @@ const updateRating = async (bookId : string, rating: Rating) => {
     } catch (error) {
         throw new Error(error as string);
     }
-}
+};
 
 const getReviews = async (bookId: string) => {
     try {
@@ -393,12 +407,56 @@ const getReviews = async (bookId: string) => {
     }
 };
 
-const getAverage = async (bookId: string) => {
+const getTopThreeBooks = async () => {
     try {
-        const book = await Book.findById(
-            { _id: bookId },
-            { reviews: 1, _id: 0 }
-        ).exec();
+        const ReadForEachBook = await User.aggregate([
+            { $unwind: "$books" },
+            {
+                $group: {
+                    _id: {
+                        bookId: "$books._id",
+                        bookName: "$books.name",
+                    },
+                    counts: {
+                        $push: {
+                            shelve: "$books.shelve",
+                            count: 1,
+                        },
+                    },
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    book: {
+                        _id: "$_id.bookId",
+                        name: "$_id.bookName",
+                        counts: {
+                            read: {
+                                $sum: {
+                                    $map: {
+                                        input: "$counts",
+                                        as: "c",
+                                        in: {
+                                            $cond: [
+                                                { $eq: ["$$c.shelve", "read"] },
+                                                "$$c.count",
+                                                0,
+                                            ],
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ]).exec();
+        const sorting = await ReadForEachBook.sort(
+            (a, b) => b.book.counts.read - a.book.counts.read
+        );
+        const topThreeBooks = await sorting.slice(0, 3);
+        return topThreeBooks;
     } catch (error) {
         throw new Error(error as string);
     }
@@ -416,4 +474,5 @@ export default {
     getReviews,
     searchBooks,
     searchCountBooks,
+    getTopThreeBooks
 };

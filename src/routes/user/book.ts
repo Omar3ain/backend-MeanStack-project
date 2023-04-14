@@ -25,6 +25,7 @@ class bookRouter implements RouteInterface {
   private initializeRoutes = () => {
     this.router.get('', this.getBooks);
     this.router.get('/getCountSearch', this.searchCountBooks);
+    this.router.get('/top', this.getTopThree);
     this.router.get('/:id', this.getBook);
     this.router.get('/:id/reviews', verifyAuth, this.getReviews);
     this.router.patch('/:id/review', verifyAuth, this.upload.none(), validationMiddleware(validate.reviews), this.editReviews);
@@ -100,6 +101,15 @@ class bookRouter implements RouteInterface {
       req.body.userId =  req.user?._id;
       const rates = await bookController.updateRating(bookId, req.body);
       res.status(200).json(rates);
+    } catch (error: any) {
+      next(new httpException(400, error.message as string));
+    }
+  }
+
+  private getTopThree = async (req: CustomRequest, res : Response, next: NextFunction): Promise<Response | void> => {
+    try {
+      const results = await bookController.getTopThreeBooks();
+      return res.status(200).json(results);
     } catch (error: any) {
       next(new httpException(400, error.message as string));
     }
