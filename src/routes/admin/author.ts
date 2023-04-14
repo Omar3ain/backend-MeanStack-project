@@ -1,43 +1,30 @@
+import { Router, Request, Response, NextFunction } from 'express';
+import { Multer } from 'multer';
+import fs from 'fs';
+
 import authorController from '@/controllers/author'
 import verifyAdmin from '@/middlewares/verifyAdmin';
 import httpException from '@/utils/exceptions/http.exception';
 import RouteInterface from '@/utils/interfaces/router.interface';
-import fs from 'fs';
-import { Router, Request, Response, NextFunction } from 'express';
-import multer from 'multer';
-import path from 'path';
+import formUpload from '@/middlewares/form.middleware';
+import validationMiddleware from '@/middlewares/validation.middleware';
+import validate from '@/utils/validations/author/Schema'
+
 
 class AuthorAdminRouter implements RouteInterface {
     public router: Router = Router();
-    public upload!: multer.Multer;
+    public upload!: Multer;
 
     constructor() {
 
-        this.upload = multer({
-            storage: multer.diskStorage({
-                destination: (req: Request, file, cb) => {
-                    cb(null, 'uploads/authors')
-                },
-                filename: (req: Request, file, cb) => {
-                    let timeStamp = Date.now();
-                    cb(null, file.originalname.split('.')[0] + "-" + timeStamp + '.' + file.originalname.split('.')[file.originalname.split('.').length - 1]);
-                }
-            }),
-            fileFilter: (req: Request, file, cb) => {
-                let ext = path.extname(file.originalname);
-                if (ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
-                    return cb(new Error('Only images are allowed!'));
-                }
-                cb(null, true);
-            }
-        });
-        this.initializeRoutes()
+        this.upload = formUpload('uploads/authors');
+        this.initializeRoutes();
     }
 
     private initializeRoutes = () => {
-        this.router.post('/', verifyAdmin,this.upload.single("photo"), this.createAuthor)
-        this.router.patch('/:id', verifyAdmin,this.upload.single("photo"), this.editAuthor)
-        this.router.delete('/:id', verifyAdmin,this.upload.single("photo"), this.deleteAuthor)
+        this.router.post('/', verifyAdmin, this.upload.single("photo"), validationMiddleware(validate.createAuthorSchema), this.createAuthor)
+        this.router.patch('/:id', verifyAdmin, this.upload.single("photo"), validationMiddleware(validate.editAuthorSchema), this.editAuthor)
+        this.router.delete('/:id', verifyAdmin, this.upload.single("photo"), this.deleteAuthor)
     }
     private createAuthor = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
 
@@ -48,8 +35,7 @@ class AuthorAdminRouter implements RouteInterface {
             res.status(200).json({ createdAuthor });
         } catch (err: any) {
             fs.unlinkSync(filePath);
-            console.error('Error creating author:', err);
-            next(new httpException(401, err.massage as string));
+            next(new httpException(400, err.massage as string));
         }
 
     };
@@ -59,12 +45,12 @@ class AuthorAdminRouter implements RouteInterface {
         const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
         try {
             const id = req.params.id;
-            if(photo !== "") req.body.photo = photo;
-            const updatedAuthor = await authorController.updateAuthor(id , req.body);
+            if (photo !== "") req.body.photo = photo;
+            const updatedAuthor = await authorController.updateAuthor(id, req.body);
             res.status(200).json(updatedAuthor);
         } catch (err: any) {
             fs.unlinkSync(filePath);
-            next(new httpException(401, "Cant edit the Author please try again."));
+            next(new httpException(400, "Cant edit the Author please try again."));
         }
 
     };
@@ -74,16 +60,11 @@ class AuthorAdminRouter implements RouteInterface {
         try {
             const deleteAuthor = await authorController.deleteAuthorById(id);
             res.status(200).json(deleteAuthor)
-
-
         }
         catch (err: any) {
-            next(new httpException(401, err.massage as string));
+            next(new httpException(400, err.massage as string));
         }
     }
-
-
-
 }
 
 export default AuthorAdminRouter;

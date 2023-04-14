@@ -1,6 +1,7 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
-import User from "@/models/User";
 import { Request, Response, NextFunction } from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
+
+import User from "@/models/User";
 import httpException from "@/utils/exceptions/http.exception";
 
 const verifyAuth = async (req: Request, res: Response, next: NextFunction) => {
@@ -13,19 +14,24 @@ const verifyAuth = async (req: Request, res: Response, next: NextFunction) => {
         const decoded: string | JwtPayload = jwt.verify(token, process.env.TOKEN_SECRET as jwt.Secret) as JwtPayload;
         const user = await User.findById(decoded.userId);
         if (user) {
-            if (!user.isAdmin) {
-                (<any>req).user = user;
-                next();
-            }else{
-                next(new httpException(401, "You are not a user"));
+            const currentTime = Math.floor(Date.now() / 1000);
+            const tokenExpirationTime = (decoded.exp as number) * 86400;
+            if (tokenExpirationTime < currentTime) {
+                next(new httpException(401, "Access denied, Token has expired!"));
+            } else {
+                if (!user.isAdmin) {
+                    (<any>req).user = user;
+                    next();
+                } else {
+                    next(new httpException(401, "You are not a user"));
+                }
             }
-        }else{
+        } else {
             next(new httpException(401, "user doesn't exist, Invalid!"));
         }
-    }catch(err){
+    } catch (err) {
         next(new httpException(401, "Access denied, Invalid token!"));
     }
-
 }
 
 export default verifyAuth;

@@ -4,6 +4,7 @@ interface Author {
     lastName: string
     dob: Date
     photo: string
+    description: string
 }
 
 
@@ -13,6 +14,7 @@ export interface AuthorUpdate {
     lastName?: string
     dob?: Date
     photo?: string
+    description?: string
 }
 
 export default Author;

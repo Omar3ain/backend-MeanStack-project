@@ -1,12 +1,16 @@
 import Author from "@/models/Author";
-import IAuthor, {AuthorUpdate} from "@/utils/interfaces/author.interface";
+import Book from "@/models/Book";
+
+import IAuthor, { AuthorUpdate } from "@/utils/interfaces/author.interface";
+import Pagination from "@/utils/interfaces/pagination.interface";
 import fs from 'fs';
+import mongoose from "mongoose";
 
 const createAuthor = async (obj: IAuthor, photo: string) => {
 
-    const { firstName, lastName, dob } = obj;
+    const { firstName, lastName, dob, description } = obj;
     try {
-        const author = await Author.create({ photo, firstName, lastName, dob });
+        const author = await Author.create({ photo, firstName, lastName, dob, description });
         return author;
     }
     catch (err) {
@@ -15,7 +19,7 @@ const createAuthor = async (obj: IAuthor, photo: string) => {
 }
 
 const getAllAuthor = async () => {
-    const author = await Author.find()
+    const author = await Author.find();
     return author;
 }
 
@@ -34,7 +38,7 @@ const getAuthorById = async (id: string) => {
     }
 }
 
-const updateAuthor = async (authorId: string, obj :AuthorUpdate) => {
+const updateAuthor = async (authorId: string, obj: AuthorUpdate) => {
     try {
         const beforUpdate = await getAuthorById(authorId)
         const updatedAuthor = await Author.findByIdAndUpdate(
@@ -67,14 +71,66 @@ const deleteAuthorById = async (id: string) => {
     }
     catch (error) {
 
-        
+
         throw new Error(error as string);
     }
 }
 
+const searchBooks = async (page: any, authorId: string) => {
+    try {
+        const myfilter: any = {};
+        const skip = (page - 1) * 10;
+        const limit = 10;
+
+
+        const books = await Book.aggregate([
+            {
+                $lookup: {
+                    from: "authors",
+                    localField: "authorId",
+                    foreignField: "_id",
+                    as: "author",
+                    pipeline: [
+                        {
+                            $project: {
+                                coverPhoto: 1,
+                                name: 1,
+                                reviews: 1,
+                                shelve: 1,
+                            },
+                        },
+                    ],
+                },
+            },
+
+            {
+                $project: {
+                    name: 1,
+                    author: { $arrayElemAt: ["$author", 0] },
+                    categoryId: 1,
+                    description: 1,
+                    reviews: 1,
+                    coverPhoto: 1
+                },
+            },
+            {
+                $match: { "author._id": new mongoose.Types.ObjectId(authorId) },
+            },
+            {
+                $skip: skip,
+            },
+            {
+                $limit: limit,
+            },
+        ]).exec();
+        return books;
+    } catch (error) {
+        throw new Error(error as string);
+    }
+};
 
 
 
 
 
-export default { createAuthor, getAllAuthor, getAuthorById, updateAuthor, deleteAuthorById }   
+export default { createAuthor, getAllAuthor, getAuthorById, updateAuthor, deleteAuthorById, searchBooks }   

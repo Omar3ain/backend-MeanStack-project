@@ -1,8 +1,9 @@
-import User from "@/models/User"
-import IUser, { IUserUpdate } from "@/utils/interfaces/user.interface"
-import createToken from "@/utils/token/creation";
-import { compare, hash } from "bcrypt";
 import fs from 'fs';
+import { compare, hash } from "bcrypt";
+import User from "@/models/User";
+import iBook, { BookUpdate } from "@/utils/interfaces/book.interface";
+import IUser, { IUserUpdate, UserBookQuery } from "@/utils/interfaces/user.interface";
+import createToken from "@/utils/token/creation";
 
 const login = async (obj: IUser) => {
     const { email, password } = obj;
@@ -10,7 +11,9 @@ const login = async (obj: IUser) => {
     if (user) {
         const hashPassword = await compare(password, user.password);
         if (hashPassword) {
-            return createToken(user._id.toString(), user.email);
+            return createToken(user._id.toString(), user.email, user.isAdmin!);
+        } else {
+            throw new Error("Wrong E-mail or Password");
         }
     } else {
         throw new Error("Wrong E-mail or Password");
@@ -22,13 +25,13 @@ const signUp = async (obj: IUser) => {
     const hashPassword = await hash(password, Number(process.env.SALT_ROUNDS));
     try {
         const user = await User.create({ firstName, lastName, email, password: hashPassword, avatar });
-        return createToken(user._id.toString(), user.email);
+        return user;
     } catch (err) {
         throw new Error(err as string);
     }
 }
 
-const getUserDetails = async (id: string) => {
+export const getUserDetails = async (id: string) => {
     const user = await User.findById(id);
     if (user) {
         return user;
@@ -40,8 +43,19 @@ const getUserDetails = async (id: string) => {
 const editUser = async (id: string, obj: IUserUpdate) => {
     try {
         const user = await getUserDetails(id);
-        const updatedUser = await User.findByIdAndUpdate({ _id: id }, obj, { new: true, runValidators: true }).exec();
-        if (obj.avatar && user && user.avatar !== obj.avatar) {
+        if (obj.newPassword) {
+            if (!user) {
+                throw new Error('User not found');
+            }
+            const isOldPasswordCorrect = await compare(obj.oldPassword as string, user.password);
+            if (!isOldPasswordCorrect) {
+                throw new Error('Old password is incorrect');
+            }
+            obj.password = await hash(obj.newPassword, Number(process.env.SALT_ROUNDS));
+        }
+        const { oldPassword, newPassword, ...updatedObj } = obj;
+        const updatedUser = await User.findByIdAndUpdate(id, updatedObj, { new: true, runValidators: true }).exec();
+        if (obj.avatar && user?.avatar !== obj.avatar) {
             const filepath = user?.avatar.split('/')[3] + '/' + user?.avatar.split('/')[4] + '/' + user?.avatar.split('/')[5];
             if (fs.existsSync(filepath)) {
                 fs.unlinkSync(filepath);
@@ -53,4 +67,40 @@ const editUser = async (id: string, obj: IUserUpdate) => {
     }
 }
 
-export default { signUp, login, getUserDetails, editUser };
+const getUserBooks = async (id: string, obj: UserBookQuery) => {
+    try {
+        const user = await getUserDetails(id);
+        let books: iBook[] | undefined;
+        if (obj.shelve == 'all') {
+            books = user.books;
+        } else {
+            books = user.books?.filter((book: iBook) => book.shelve === obj.shelve);
+        }
+        const paginatedBooks = books!.slice(Number(obj.skip), Number(obj.skip) + Number(obj.limit));
+        return paginatedBooks;
+    } catch (error) {
+        throw new Error(error as string);
+    }
+}
+
+export const editShelve = async (id: string, obj: any) => {
+    try {
+        const updatedUser = await User.findByIdAndUpdate({ _id: id }, { $push: { books: obj } }, { new: true, runValidators: true }).exec();
+        return updatedUser;
+    } catch (error) {
+        throw new Error(error as string);
+    }
+}
+
+export const updateBookInUser = async (id: string, obj: BookUpdate) => {
+    try {
+        const updatedUser = await User.findOneAndUpdate({ _id: id, 'books._id': obj._id }, { $set: { 'books.$.shelve': obj.shelve } }, { new: true });
+        return updatedUser;
+    } catch (error) {
+        throw new Error(error as string);
+    }
+
+}
+
+
+export default { signUp, login, getUserDetails, editUser, getUserBooks, editShelve }; 

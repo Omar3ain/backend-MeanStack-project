@@ -1,20 +1,30 @@
-interface IUser{
+interface IUser {
+    _id?: string;
     firstName: string,
     lastName: string,
     email: string,
     password: string,
     avatar: string,
-    books? : [],
+    books?: [],
     isAdmin?: boolean
 }
 
-export interface IUserUpdate{
+export interface IUserUpdate {
     firstName?: string,
     lastName?: string,
     email?: string,
     password?: string,
+    oldPassword?: string,
+    newPassword?: string,
     avatar?: string,
-    books? : [],
+    books?: [],
     isAdmin?: boolean
 }
+
+export interface UserBookQuery {
+    shelve?: string
+    skip?: string
+    limit?: string
+}
+
 export default IUser;
