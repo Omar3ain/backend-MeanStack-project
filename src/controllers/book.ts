@@ -246,6 +246,47 @@ const getBookDetails = async (id: string) => {
     }
 };
 
+const getBookForUser = async (id:string , uId: string) => {
+    try {
+        const bookId = new mongoose.Types.ObjectId(id);
+        const userId = new mongoose.Types.ObjectId(uId);
+        const book = await Book.aggregate([
+             {$match: {_id : bookId}},
+             {$project: { name: 1, coverPhoto:1, authorId: 1, shelve : 1, reviews: {
+                $arrayElemAt: [
+                  {
+                    $filter: {
+                      input: "$reviews",
+                      as: "review",
+                      cond: { $eq: ["$$review.userId", userId] }
+                    }
+                  },
+                  0
+                ]
+              },}},
+            {$lookup: {
+                from: "authors",
+                localField: "authorId",
+                foreignField: "_id",
+                as: "author",
+                pipeline: [
+                    {
+                        $project: {
+                            _id:1,
+                            firstName: 1,
+                            lastName: 1,
+                        },
+                    },
+                ],
+            },},
+            { $project: { name: 1, coverPhoto: 1, author:  { $arrayElemAt: ["$author", 0] }, shelve : 1,  "reviews.rating": "$reviews.rating" }},
+        ]);
+        return book[0];
+    } catch (error) {
+        throw new Error(error as string);
+    }
+}
+
 const editBookShelve = async (
     bookid: string,
     status: "read" | "want_to_read" | "currently_reading" | "none",
@@ -253,25 +294,9 @@ const editBookShelve = async (
 ) => {
     try {
         const user: IUser = await getUserDetails(userId);
-        const book = await getBookDetails(bookid);
+        const book = await getBookForUser(bookid, userId);
 
         if (book) {
-            const userReview = book.reviews?.find(
-                (review) => review.userId.toString() == userId
-            );
-            const userRating = userReview ? userReview.rating : null;
-            const { reviews, ...bookWithoutReviews } = book!.toObject();
-            const avgRate = Math.floor(
-                reviews?.reduce(
-                    (average: any, review: any) => average + review.rating,
-                    0
-                ) / reviews!.length
-            );
-            const userbook = {
-                ...bookWithoutReviews,
-                rating: userRating,
-                avgRate,
-            };
             const bookExistsInUserBooks = user.books?.some((userBook: any) =>
                 userBook._id.equals(book._id)
             );
@@ -282,8 +307,13 @@ const editBookShelve = async (
                     shelve: status,
                 });
             } else {
-                userbook!.shelve = status;
-                return editShelve(userId, userbook);
+                book!.shelve = status;
+                const editedShelve = await editShelve(userId, book);
+                await Book.findByIdAndUpdate({ _id: book._id }, { $inc: { popularity: 1 } }, {
+                    new: true,
+                    runValidators: true,
+                }).exec();
+                return editedShelve;
             }
         }
     } catch (error) {
@@ -291,35 +321,38 @@ const editBookShelve = async (
     }
 };
 const editReview = async (bookId: string, update: Review) => {
-    try {
-        const updatedReview = await Book.findOneAndUpdate(
-            { _id: bookId, "reviews.userId": update.userId },
-            {
-                $set: {
-                    "reviews.$.comment": update.comment,
-                    "reviews.$.rating": update.rating,
-                },
-            },
-            { new: true }
-        );
-
-        const bID = new mongoose.Types.ObjectId(bookId);
-        const UpdateBookReviewInUser = await User.findOneAndUpdate(
-            { _id: update.userId, "books._id": bID },
-            {
-                $set: {
-                    "books.$.comment": update.comment,
-                    "books.$.rating": new Number(update.rating),
-                },
-            }
-        );
-
-        console.log(UpdateBookReviewInUser);
-        return updatedReview;
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                    await Book.findOneAndUpdate(
+                        { _id: bookId, "reviews.userId": update.userId },
+                        {
+                            $set: {
+                                "reviews.$.comment": update.comment,
+                                "reviews.$.rating": update.rating,
+                            },
+                        },
+                        { new: true }
+                    );
+            
+                    const bID = new mongoose.Types.ObjectId(bookId);
+                    await User.findOneAndUpdate(
+                        { _id: update.userId, "books._id": bID },
+                        {
+                            $set: {
+                                "books.$.reviews.rating": new Number(update.rating),
+                            },
+                        },
+                    );
+              await session.commitTransaction();
+            const updatedBook = await Book.findById(bookId);
+            return updatedBook;
     } catch (error) {
         throw new Error(error as string);
+    }finally {
+        await session.endSession();
     }
-};
+}
 
 const updatedReview = async (bookId: string, update: Review) => {
     try {
@@ -345,7 +378,7 @@ const updatedReview = async (bookId: string, update: Review) => {
 type Rating = {
     rating: number;
     userId: string;
-};
+}
 
 const editRate = async (bookId: string, rating: Rating) => {
     try {
@@ -374,11 +407,58 @@ const editRate = async (bookId: string, rating: Rating) => {
                 },
             }
         );
-        return updatedRate || UpdateBookRateInUser;
+        return updatedRate;
     } catch (error) {
         throw new Error(error as string);
     }
 };
+
+const getPopulars = async () => {
+    try {
+        const popBooks = await Book.aggregate([
+            { $sort: { popularity: -1 } },
+            { $limit: 3 },
+            { $project: { name: 1, coverPhoto:1, authorId: 1, categoryId: 1, avgRating: { $avg: "$reviews.rating" } } },
+            { $limit: 3 },
+            {$lookup: {
+                from: "categories",
+                localField: "categoryId",
+                foreignField: "_id",
+                as: "category",
+                pipeline: [
+                    {
+                        $project: {
+                            name: 1,
+                            categoryCover:1,
+                        },
+                    },
+                ],
+            },},
+            {$lookup: {
+                from: "authors",
+                localField: "authorId",
+                foreignField: "_id",
+                as: "author",
+                pipeline: [
+                    {
+                        $project: {
+                            firstName: 1,
+                            lastName: 1,
+                            photo:1,
+                        },
+                    },
+                ],
+            },},
+            { $project: { name: 1, coverPhoto: 1, author: 1, category: 1, avgRating: 1 } },
+          ]);
+
+          if(popBooks) {
+            return popBooks;
+          }
+    } catch (error) {
+        throw new Error(error as string);
+    }
+}
 
 const updateRating = async (bookId: string, rating: Rating) => {
     try {
@@ -474,5 +554,6 @@ export default {
     getReviews,
     searchBooks,
     searchCountBooks,
-    getTopThreeBooks
+    getTopThreeBooks,
+    getPopulars,
 };
