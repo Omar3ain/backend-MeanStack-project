@@ -6,7 +6,6 @@ import bookController from '@/controllers/book';
 import httpException from '@/utils/exceptions/http.exception';
 import verifyAuth from '@/middlewares/verifyUser';
 import CustomRequest from '@/utils/interfaces/request.interface';
-import Pagination from '@/utils/interfaces/pagination.interface';
 import validationMiddleware from '@/middlewares/validation.middleware';
 import validate from '@/utils/validations/book/schema';
 interface BookFilter {
@@ -25,7 +24,6 @@ class bookRouter implements RouteInterface {
   private initializeRoutes = () => {
     this.router.get('', this.getBooks);
     this.router.get('/getCountSearch', this.searchCountBooks);
-    // this.router.get('/top', this.getTopThree);
     this.router.get('/:id', this.getBook);
     this.router.get('/:id/reviews', verifyAuth, this.getReviews);
     this.router.patch('/:id/review', verifyAuth, this.upload.none(), validationMiddleware(validate.reviews), this.editReviews);
