@@ -1,8 +1,10 @@
 import Author from "@/models/Author";
 import Book from "@/models/Book";
+
 import IAuthor, { AuthorUpdate } from "@/utils/interfaces/author.interface";
 import Pagination from "@/utils/interfaces/pagination.interface";
 import fs from 'fs';
+import mongoose from "mongoose";
 
 const createAuthor = async (obj: IAuthor, photo: string) => {
 
@@ -74,7 +76,57 @@ const deleteAuthorById = async (id: string) => {
     }
 }
 
+const searchBooks = async (page: any, authorId: string) => {
+    try {
+        const myfilter: any = {};
+        const skip = (page - 1) * 10;
+        const limit = 10;
 
+
+        const books = await Book.aggregate([
+            {
+                $lookup: {
+                    from: "authors",
+                    localField: "authorId",
+                    foreignField: "_id",
+                    as: "author",
+                    pipeline: [
+                        {
+                            $project: {
+                                coverPhoto: 1,
+                                lastName: 1,
+                            },
+                        },
+                    ],
+                },
+            },
+
+            {
+                $project: {
+                    name: 1,
+                    author: { $arrayElemAt: ["$author", 0] },
+                    categoryId: 1,
+
+                    description: 1,
+                    reviews: 1,
+                    coverPhoto: 1
+                },
+            },
+            {
+                $match: { "author._id": new mongoose.Types.ObjectId(authorId) },
+            },
+            {
+                $skip: skip,
+            },
+            {
+                $limit: limit,
+            },
+        ]).exec();
+        return books;
+    } catch (error) {
+        throw new Error(error as string);
+    }
+};
 
 
 
