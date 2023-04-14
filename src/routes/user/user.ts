@@ -30,7 +30,7 @@ class userRouter implements RouteInterface {
       const user = await userController.getUserDetails((<any>req).user._id);
       res.status(200).json(user);
     } catch (error: any) {
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
     }
   }
 
@@ -46,7 +46,7 @@ class userRouter implements RouteInterface {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
     }
   }
 
@@ -60,7 +60,7 @@ class userRouter implements RouteInterface {
       const user = await userController.getUserBooks(id, { shelve, skip, limit });
       res.status(200).json(user);
     } catch (error: any) {
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
     }
   }
 }

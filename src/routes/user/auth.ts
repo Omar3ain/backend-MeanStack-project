@@ -30,7 +30,7 @@ class authRouter implements RouteInterface {
       res.status(200).json(user);
     } catch (error: any) {
       fs.unlinkSync(filePath);
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
     }
   }
 
@@ -40,7 +40,7 @@ class authRouter implements RouteInterface {
 
       res.status(200).json(userToken);
     } catch (error: any) {
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
     }
   }
 }
