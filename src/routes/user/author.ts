@@ -13,7 +13,7 @@ class authorRouter implements RouteInterface {
     private initializeRoutes = () => {
         this.router.get('/', this.getAuthors);
         this.router.get('/:id', this.getAuthorById);
-
+        this.router.get('/:id/books', this.getAthorsBooks);
 
     }
 
@@ -37,7 +37,19 @@ class authorRouter implements RouteInterface {
             next(new httpException(401, error.massage as string))
         }
     }
+    private getAthorsBooks = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const page = req.query.page || 1;
 
+            const authorBooks = await authorController.searchBooks(page, req.params.id)
+            if (authorBooks) { res.status(200).json(authorBooks) }
+
+
+        }
+        catch (error: any) {
+            next(new httpException(401, error.massage as string))
+        }
+    }
 
 
 }

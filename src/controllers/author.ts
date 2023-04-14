@@ -94,7 +94,9 @@ const searchBooks = async (page: any, authorId: string) => {
                         {
                             $project: {
                                 coverPhoto: 1,
-                                lastName: 1,
+                                name: 1,
+                                reviews: 1,
+                                shelve: 1,
                             },
                         },
                     ],
@@ -106,7 +108,6 @@ const searchBooks = async (page: any, authorId: string) => {
                     name: 1,
                     author: { $arrayElemAt: ["$author", 0] },
                     categoryId: 1,
-
                     description: 1,
                     reviews: 1,
                     coverPhoto: 1
@@ -132,4 +133,4 @@ const searchBooks = async (page: any, authorId: string) => {
 
 
 
-export default { createAuthor, getAllAuthor, getAuthorById, updateAuthor, deleteAuthorById }   
+export default { createAuthor, getAllAuthor, getAuthorById, updateAuthor, deleteAuthorById, searchBooks }   

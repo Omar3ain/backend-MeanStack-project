@@ -22,8 +22,8 @@ class AuthorAdminRouter implements RouteInterface {
     }
 
     private initializeRoutes = () => {
-        this.router.post('/', this.upload.single("photo"), validationMiddleware(validate.createAuthorSchema), this.createAuthor)
-        this.router.patch('/:id', this.upload.single("photo"), validationMiddleware(validate.editAuthorSchema), this.editAuthor)
+        this.router.post('/', verifyAdmin, this.upload.single("photo"), validationMiddleware(validate.createAuthorSchema), this.createAuthor)
+        this.router.patch('/:id', verifyAdmin, this.upload.single("photo"), validationMiddleware(validate.editAuthorSchema), this.editAuthor)
         this.router.delete('/:id', verifyAdmin, this.upload.single("photo"), this.deleteAuthor)
     }
     private createAuthor = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
