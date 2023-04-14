@@ -1,7 +1,7 @@
 import Review from "@/utils/interfaces/review.interface";
 import Book from "@/models/Book";
 import User from "@/models/User";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import fs from "fs";
 
 import iBook, { BookUpdate } from "@/utils/interfaces/book.interface";
@@ -245,40 +245,46 @@ const getBookDetails = async (id: string) => {
     }
 };
 
-const getBookForUser = async (id:string , uId: string) => {
+const getBookForUser = async (id: string, uId: string) => {
     try {
         const bookId = new mongoose.Types.ObjectId(id);
         const userId = new mongoose.Types.ObjectId(uId);
         const book = await Book.aggregate([
-             {$match: {_id : bookId}},
-             {$project: { name: 1, coverPhoto:1, authorId: 1, shelve : 1, reviews: {
-                $arrayElemAt: [
-                  {
-                    $filter: {
-                      input: "$reviews",
-                      as: "review",
-                      cond: { $eq: ["$$review.userId", userId] }
-                    }
-                  },
-                  0
-                ]
-              },}},
-            {$lookup: {
-                from: "authors",
-                localField: "authorId",
-                foreignField: "_id",
-                as: "author",
-                pipeline: [
-                    {
-                        $project: {
-                            _id:1,
-                            firstName: 1,
-                            lastName: 1,
-                        },
+            { $match: { _id: bookId } },
+            {
+                $project: {
+                    name: 1, coverPhoto: 1, authorId: 1, shelve: 1, reviews: {
+                        $arrayElemAt: [
+                            {
+                                $filter: {
+                                    input: "$reviews",
+                                    as: "review",
+                                    cond: { $eq: ["$$review.userId", userId] }
+                                }
+                            },
+                            0
+                        ]
                     },
-                ],
-            },},
-            { $project: { name: 1, coverPhoto: 1, author:  { $arrayElemAt: ["$author", 0] }, shelve : 1,  "reviews.rating": "$reviews.rating" }},
+                }
+            },
+            {
+                $lookup: {
+                    from: "authors",
+                    localField: "authorId",
+                    foreignField: "_id",
+                    as: "author",
+                    pipeline: [
+                        {
+                            $project: {
+                                _id: 1,
+                                firstName: 1,
+                                lastName: 1,
+                            },
+                        },
+                    ],
+                },
+            },
+            { $project: { name: 1, coverPhoto: 1, author: { $arrayElemAt: ["$author", 0] }, shelve: 1, "reviews.rating": "$reviews.rating" } },
         ]);
         return book[0];
     } catch (error) {
@@ -319,36 +325,48 @@ const editBookShelve = async (
         throw new Error(error as string);
     }
 };
+
+
 const editReview = async (bookId: string, update: Review) => {
-            const session = await mongoose.startSession();
-            session.startTransaction();
-            try {
-                    await Book.findOneAndUpdate(
-                        { _id: bookId, "reviews.userId": update.userId },
-                        {
-                            $set: {
-                                "reviews.$.comment": update.comment,
-                                "reviews.$.rating": update.rating,
-                            },
-                        },
-                        { new: true }
-                    );
-            
-                    const bID = new mongoose.Types.ObjectId(bookId);
-                    await User.findOneAndUpdate(
-                        { _id: update.userId, "books._id": bID },
-                        {
-                            $set: {
-                                "books.$.reviews.rating": new Number(update.rating),
-                            },
-                        },
-                    );
-              await session.commitTransaction();
-            const updatedBook = await Book.findById(bookId);
-            return updatedBook;
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        await Book.findOneAndUpdate(
+            { _id: bookId, "reviews.userId": update.userId },
+            {
+                $set: {
+                    "reviews.$.comment": update.comment,
+                    "reviews.$.rating": update.rating,
+                },
+            },
+            { new: true }
+        );
+
+        const bID = new mongoose.Types.ObjectId(bookId);
+        const avgRate = await Book.aggregate([
+            { $match: { _id: bID } },
+            {
+                $project: {
+                    avgRating: { $avg: '$reviews.rating' }
+                }
+            }
+        ]);
+        await User.findOneAndUpdate(
+            { _id: update.userId, "books._id": bID },
+            {
+                $set: {
+                    "books.$.reviews.rating": new Number(update.rating),
+                    "books.$.avgRate": avgRate[0].avgRating
+                },
+            },
+        );
+
+        await session.commitTransaction();
+        const updatedBook = await Book.findById(bookId);
+        return updatedBook;
     } catch (error) {
         throw new Error(error as string);
-    }finally {
+    } finally {
         await session.endSession();
     }
 }
@@ -379,6 +397,7 @@ type Rating = {
     userId: string;
 }
 
+
 const editRate = async (bookId: string, rating: Rating) => {
     try {
         const updatedRate = await Book.findOneAndUpdate(
@@ -391,13 +410,20 @@ const editRate = async (bookId: string, rating: Rating) => {
             { new: true }
         );
         const bID = new mongoose.Types.ObjectId(bookId);
-        const avgRate =  Math.floor(updatedRate?.reviews?.reduce((average: any, review:any) => average + review.rating, 0) / updatedRate?.reviews?.length!);
+        const avgRate = await Book.aggregate([
+            { $match: { _id: bID } },
+            {
+                $project: {
+                    avgRating: { $avg: '$reviews.rating' }
+                }
+            }
+        ]);
         await User.findOneAndUpdate(
             { _id: rating.userId, "books._id": bID },
             {
                 $set: {
                     "books.$.reviews.rating": new Number(rating.rating),
-                    "books.$.avgRate": avgRate
+                    "books.$.avgRate": avgRate[0].avgRating
                 },
             },
         );
@@ -412,43 +438,47 @@ const getPopulars = async () => {
         const popBooks = await Book.aggregate([
             { $sort: { popularity: -1 } },
             { $limit: 3 },
-            { $project: { name: 1, coverPhoto:1, authorId: 1, categoryId: 1, avgRating: { $avg: "$reviews.rating" } } },
+            { $project: { name: 1, coverPhoto: 1, authorId: 1, categoryId: 1, avgRating: { $avg: "$reviews.rating" } } },
             { $limit: 3 },
-            {$lookup: {
-                from: "categories",
-                localField: "categoryId",
-                foreignField: "_id",
-                as: "category",
-                pipeline: [
-                    {
-                        $project: {
-                            name: 1,
-                            categoryCover:1,
+            {
+                $lookup: {
+                    from: "categories",
+                    localField: "categoryId",
+                    foreignField: "_id",
+                    as: "category",
+                    pipeline: [
+                        {
+                            $project: {
+                                name: 1,
+                                categoryCover: 1,
+                            },
                         },
-                    },
-                ],
-            },},
-            {$lookup: {
-                from: "authors",
-                localField: "authorId",
-                foreignField: "_id",
-                as: "author",
-                pipeline: [
-                    {
-                        $project: {
-                            firstName: 1,
-                            lastName: 1,
-                            photo:1,
+                    ],
+                },
+            },
+            {
+                $lookup: {
+                    from: "authors",
+                    localField: "authorId",
+                    foreignField: "_id",
+                    as: "author",
+                    pipeline: [
+                        {
+                            $project: {
+                                firstName: 1,
+                                lastName: 1,
+                                photo: 1,
+                            },
                         },
-                    },
-                ],
-            },},
+                    ],
+                },
+            },
             { $project: { name: 1, coverPhoto: 1, author: 1, category: 1, avgRating: 1 } },
-          ]);
+        ]);
 
-          if(popBooks) {
+        if (popBooks) {
             return popBooks;
-          }
+        }
     } catch (error) {
         throw new Error(error as string);
     }
