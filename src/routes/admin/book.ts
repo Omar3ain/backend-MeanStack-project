@@ -32,7 +32,7 @@ class bookAdminRouter implements RouteInterface {
       res.status(200).json({ book });
     } catch (error: any) {
       fs.unlinkSync(filePath);
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
     }
   }
   private getBook = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
@@ -40,7 +40,7 @@ class bookAdminRouter implements RouteInterface {
       const book = await bookController.getBookDetails(req.params.id);
       res.status(200).json(book);
     } catch (error: any) {
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
     }
   }
 
@@ -51,7 +51,7 @@ class bookAdminRouter implements RouteInterface {
 
       res.status(200).json({ status: 'Deleted successfully' });
     } catch (error: any) {
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
     }
   }
   private update = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
@@ -65,7 +65,7 @@ class bookAdminRouter implements RouteInterface {
       res.status(200).json({ status: 'Updated successfully', updatedBook: book });
     } catch (error: any) {
       fs.unlinkSync(filePath);
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
     }
   }
 

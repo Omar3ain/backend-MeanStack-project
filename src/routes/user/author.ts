@@ -23,7 +23,7 @@ class authorRouter implements RouteInterface {
             const authors = await authorController.getAllAuthor();
             res.status(200).json(authors);
         } catch (error: any) {
-            next(new httpException(401, error.message as string));
+            next(new httpException(400, error.message as string));
         }
     }
     private getAuthorById = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
@@ -34,7 +34,7 @@ class authorRouter implements RouteInterface {
 
         }
         catch (error: any) {
-            next(new httpException(401, error.massage as string))
+            next(new httpException(400, error.massage as string))
         }
     }
     private getAthorsBooks = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {

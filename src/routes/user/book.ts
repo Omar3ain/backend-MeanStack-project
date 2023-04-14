@@ -25,11 +25,13 @@ class bookRouter implements RouteInterface {
   private initializeRoutes = () => {
     this.router.get('', this.getBooks);
     this.router.get('/getCountSearch', this.searchCountBooks);
+    // this.router.get('/top', this.getTopThree);
     this.router.get('/:id', this.getBook);
     this.router.get('/:id/reviews', verifyAuth, this.getReviews);
     this.router.patch('/:id/review', verifyAuth, this.upload.none(), validationMiddleware(validate.reviews), this.editReviews);
     this.router.patch('/:id/shelve', verifyAuth, this.upload.none(), validationMiddleware(validate.updateBook), this.changeBookShelve);
     this.router.patch('/:id/rate', verifyAuth, this.upload.none(), validationMiddleware(validate.rates), this.editRatings);
+    this.router.get('/populars/books', this.getPopularEntities);
   }
 
   private getBooks = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
@@ -39,7 +41,7 @@ class bookRouter implements RouteInterface {
       const books = await bookController.searchBooks(page, { name, category, author });
       res.status(200).json(books);
     } catch (error: any) {
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
     }
   }
 
@@ -51,7 +53,7 @@ class bookRouter implements RouteInterface {
       const books = await bookController.searchCountBooks(page, { name, category, author });
       res.status(200).json(books);
     } catch (error: any) {
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
     }
   };
 
@@ -60,7 +62,7 @@ class bookRouter implements RouteInterface {
       const book = await bookController.getBookDetails(req.params.id);
       res.status(200).json(book);
     } catch (error: any) {
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
     }
   }
 
@@ -70,7 +72,7 @@ class bookRouter implements RouteInterface {
       const updatedUser = await bookController.editBookShelve(req.params.id, shelve, req.user!._id!);
       res.status(200).json({ status: "Success", user: updatedUser });
     } catch (error: any) {
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
     }
   }
   private editReviews = async (req: CustomRequest, res: Response, next: NextFunction): Promise<Response | void> => {
@@ -81,7 +83,7 @@ class bookRouter implements RouteInterface {
       const updatedReview = await bookController.updatedReview(bookId, req.body)
       res.status(200).json(updatedReview)
     } catch (error: any) {
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
 
     }
   }
@@ -91,7 +93,7 @@ class bookRouter implements RouteInterface {
       const reviews = await bookController.getReviews(bookId)
       res.status(200).json(reviews)
     } catch (error: any) {
-      next(new httpException(401, error.message as string));
+      next(new httpException(400, error.message as string));
     }
   }
   private editRatings = async (req: CustomRequest, res: Response, next: NextFunction): Promise<Response | void> => {
@@ -104,6 +106,16 @@ class bookRouter implements RouteInterface {
       next(new httpException(400, error.message as string));
     }
   }
+
+  private getPopularEntities = async (req: CustomRequest, res: Response, next: NextFunction): Promise<Response | void> => {
+    try {
+      const pops = await bookController.getPopulars();
+      res.status(200).json(pops);
+    } catch (error: any) {
+      next(new httpException(400, error.message as string));
+    }
+  }
 }
+
 
 export default bookRouter;

@@ -146,7 +146,7 @@ const searchBooks = async (page: any, bookFilter: BookFilter) => {
           categoryId: 1,
           description: 1,
           reviews: 1,
-          coverPhoto: 1
+          coverPhoto: 1,
         },
       },
       {
@@ -245,6 +245,53 @@ const getBookDetails = async (id: string) => {
     throw new Error(error as string);
   }
 };
+
+const getBookForUser = async (id: string, uId: string) => {
+  try {
+    const bookId = new mongoose.Types.ObjectId(id);
+    const userId = new mongoose.Types.ObjectId(uId);
+    const book = await Book.aggregate([
+      { $match: { _id: bookId } },
+      {
+        $project: {
+          name: 1, coverPhoto: 1, authorId: 1, shelve: 1, reviews: {
+            $arrayElemAt: [
+              {
+                $filter: {
+                  input: "$reviews",
+                  as: "review",
+                  cond: { $eq: ["$$review.userId", userId] }
+                }
+              },
+              0
+            ]
+          },
+        }
+      },
+      {
+        $lookup: {
+          from: "authors",
+          localField: "authorId",
+          foreignField: "_id",
+          as: "author",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                firstName: 1,
+                lastName: 1,
+              },
+            },
+          ],
+        },
+      },
+      { $project: { name: 1, coverPhoto: 1, author: { $arrayElemAt: ["$author", 0] }, shelve: 1, "reviews.rating": "$reviews.rating" } },
+    ]);
+    return book[0];
+  } catch (error) {
+    throw new Error(error as string);
+  }
+}
 
 const editBookShelve = async (
   bookid: string,
