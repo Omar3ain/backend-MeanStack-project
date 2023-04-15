@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { Multer } from 'multer';
+import { v2 as cloudinary } from "cloudinary";
 import fs from 'fs';
 
 import RouteInterface from '@/utils/interfaces/router.interface';
@@ -14,6 +15,11 @@ class bookAdminRouter implements RouteInterface {
 
   public upload: Multer;
   constructor() {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
     this.upload = formUpload('uploads/books');
     this.initializeRoutes();
   }
@@ -25,13 +31,21 @@ class bookAdminRouter implements RouteInterface {
     this.router.patch(`/:id`, verifyAdmin, this.upload.single("coverPhoto"), validationMiddleware(validate.updateBook), this.update);
   }
   private makeBook = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
-    const coverPhoto = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
-    const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
+    let coverPhoto = '';
     try {
+      if (req.file) {
+        const result = await cloudinary.uploader.upload(req.file.path);
+        coverPhoto = result.secure_url;
+        fs.unlinkSync(req.file.path);
+      }
       const book = await bookController.createBook(req.body, coverPhoto);;
       res.status(200).json({ book });
     } catch (error: any) {
-      fs.unlinkSync(filePath);
+      if (req.file) {
+        const publicId = coverPhoto.split("/").pop()?.split(".")[0];
+        await cloudinary.uploader.destroy(publicId!);
+        fs.unlinkSync(req.file.path);
+      }
       next(new httpException(400, error.message as string));
     }
   }
@@ -47,24 +61,40 @@ class bookAdminRouter implements RouteInterface {
   private deleteBook = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
       const id: string = req.params.id;
+      const book = await bookController.getBookDetails(id);
+      if (book?.coverPhoto) {
+        const publicId = book.coverPhoto.split("/").pop()?.split(".")[0];
+        await cloudinary.uploader.destroy(publicId!);
+      }
       const resp = await bookController.deleteBook(id);
-
       res.status(200).json({ status: 'Deleted successfully' });
     } catch (error: any) {
       next(new httpException(400, error.message as string));
     }
   }
   private update = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
-    const coverPhoto = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
-    const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
+    let coverPhoto = '';
     try {
       const id: string = req.params.id;
-      if (coverPhoto !== "") req.body.coverPhoto = coverPhoto;
+      const bookdetail = await bookController.getBookDetails(id);
+      if (req.file) {
+        if (bookdetail?.coverPhoto) {
+          const publicId = bookdetail.coverPhoto.split("/").pop()?.split(".")[0];
+          await cloudinary.uploader.destroy(publicId!);
+        }
+        const result = await cloudinary.uploader.upload(req.file.path);
+        coverPhoto = result.secure_url;
+        fs.unlinkSync(req.file.path);
+        req.body.coverPhoto = coverPhoto;
+      }
       const book = await bookController.editBook(id, req.body);
-
       res.status(200).json({ status: 'Updated successfully', updatedBook: book });
     } catch (error: any) {
-      fs.unlinkSync(filePath);
+      if (req.file) {
+        const publicId = coverPhoto.split("/").pop()?.split(".")[0];
+        await cloudinary.uploader.destroy(publicId!);
+        fs.unlinkSync(req.file.path);
+      }
       next(new httpException(400, error.message as string));
     }
   }

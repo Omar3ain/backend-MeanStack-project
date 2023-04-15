@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { Multer } from 'multer';
+import { v2 as cloudinary } from "cloudinary";
 import fs from 'fs';
 
 import RouteInterface from '@/utils/interfaces/router.interface';
@@ -12,7 +13,13 @@ import formUpload from '@/middlewares/form.middleware';
 class authRouter implements RouteInterface {
   public router: Router = Router();
   public upload: Multer;
+
   constructor() {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
     this.upload = formUpload('uploads/users')
     this.initializeRoutes()
   }
@@ -23,14 +30,18 @@ class authRouter implements RouteInterface {
   }
   private register = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     const { firstName, lastName, email, password } = req.body;
-    const avatar = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
-    const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
+    let avatar = '';
     try {
+      if (req.file) {
+        const result = await cloudinary.uploader.upload(req.file.path);
+        avatar = result.secure_url;
+        fs.unlinkSync(req.file.path);
+      }
       const user = await userController.signUp({ firstName, lastName, email, password, avatar });
       res.status(200).json(user);
     } catch (error: any) {
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
       }
       next(new httpException(400, error.message as string));
     }

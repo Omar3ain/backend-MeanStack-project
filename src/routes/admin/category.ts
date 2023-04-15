@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import multer from 'multer';
+import { v2 as cloudinary } from "cloudinary";
 import fs from 'fs';
 import RouteInterface from '@/utils/interfaces/router.interface';
 import categoryController from '@/controllers/category';
@@ -15,6 +16,11 @@ class categoryAdminRouter implements RouteInterface {
 
   public upload: multer.Multer;
   constructor() {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
     this.upload = formUpload('uploads/categories');
     this.initializeRoutes()
   }
@@ -38,14 +44,21 @@ class categoryAdminRouter implements RouteInterface {
 
   private addCategory = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     const { name } = req.body;
-    const categoryCover = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
-    const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
+    let categoryCover = '';
     try {
+      if (req.file) {
+        console.log(req.file)
+        const result = await cloudinary.uploader.upload(req.file.path);
+        categoryCover = result.secure_url;
+        fs.unlinkSync(req.file.path);
+      }
       const category = await categoryController.add({ name, categoryCover });
       res.status(200).json({ status: 201, category });
     } catch (error: any) {
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+      if (req.file) {
+        const publicId = categoryCover.split("/").pop()?.split(".")[0];
+        await cloudinary.uploader.destroy(publicId!);
+        fs.unlinkSync(req.file.path);
       }
       next(new httpException(400, error.message as string));
     }
@@ -54,6 +67,11 @@ class categoryAdminRouter implements RouteInterface {
   private deleteGategory = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     const { id } = req.params;
     try {
+      const categoryDetail = await categoryController.getById(id);
+      if (categoryDetail?.categoryCover) {
+        const publicId = categoryDetail.categoryCover.split("/").pop()?.split(".")[0];
+        await cloudinary.uploader.destroy(publicId!);
+      }
       const category = await categoryController.remove(id);
       res.status(200).json({ status: 201, category });
     } catch (error: any) {
@@ -64,14 +82,26 @@ class categoryAdminRouter implements RouteInterface {
   private editGategory = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     const { id } = req.params;
     const { name } = req.body;
-    const categoryCover = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
-    const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
+    let categoryCover = '';
     try {
+      const categoryDetail = await categoryController.getById(id);
+      if (req.file) {
+        if (categoryDetail?.categoryCover) {
+          const publicId = categoryDetail.categoryCover.split("/").pop()?.split(".")[0];
+          await cloudinary.uploader.destroy(publicId!);
+        }
+        const result = await cloudinary.uploader.upload(req.file.path);
+        categoryCover = result.secure_url;
+        fs.unlinkSync(req.file.path);
+        req.body.coverPhoto = categoryCover;
+      }
       const category = await categoryController.edit(id, { name, categoryCover });
       res.status(200).json({ status: 201, category });
     } catch (error: any) {
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+      if (req.file) {
+        const publicId = categoryCover.split("/").pop()?.split(".")[0];
+        await cloudinary.uploader.destroy(publicId!);
+        fs.unlinkSync(req.file.path);
       }
       next(new httpException(400, error.message as string));
     }

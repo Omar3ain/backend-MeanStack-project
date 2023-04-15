@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { Multer } from 'multer';
+import { v2 as cloudinary } from "cloudinary";
 import fs from 'fs';
 
 import authorController from '@/controllers/author'
@@ -16,7 +17,11 @@ class AuthorAdminRouter implements RouteInterface {
     public upload!: Multer;
 
     constructor() {
-
+        cloudinary.config({
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET,
+        });
         this.upload = formUpload('uploads/authors');
         this.initializeRoutes();
     }
@@ -27,32 +32,48 @@ class AuthorAdminRouter implements RouteInterface {
         this.router.delete('/:id', verifyAdmin, this.upload.single("photo"), this.deleteAuthor)
     }
     private createAuthor = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
-
-        const photo = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
-        const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
+        let photo = '';
         try {
-            const createdAuthor = await authorController.createAuthor(req.body, photo);
+            if (req.file) {
+                console.log(req.file)
+                const result = await cloudinary.uploader.upload(req.file.path);
+                photo = result.secure_url;
+                fs.unlinkSync(req.file.path);
+            }
+            const createdAuthor = await authorController.createAuthor(photo, req.body);
             res.status(200).json({ createdAuthor });
         } catch (err: any) {
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
+            if (req.file) {
+                const publicId = photo.split("/").pop()?.split(".")[0];
+                await cloudinary.uploader.destroy(publicId!);
+                fs.unlinkSync(req.file.path);
             }
             next(new httpException(400, err.massage as string));
         }
-
     };
 
     private editAuthor = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
-        const photo = req.file ? `${req.protocol}://${req.headers.host}/${req.file.destination}/${req.file.filename}` : "";
-        const filePath = req.file ? `${req.file.destination}/${req.file.filename}` : "";
+        let photo = '';
         try {
             const id = req.params.id;
-            if (photo !== "") req.body.photo = photo;
+            const author = await authorController.getAuthorById(id);
+            if (req.file) {
+                if (author.photo) {
+                    const publicId = author.photo.split("/").pop()?.split(".")[0];
+                    await cloudinary.uploader.destroy(publicId!);
+                }
+                const result = await cloudinary.uploader.upload(req.file.path);
+                photo = result.secure_url;
+                fs.unlinkSync(req.file.path);
+                req.body.photo = photo;
+            }
             const updatedAuthor = await authorController.updateAuthor(id, req.body);
             res.status(200).json(updatedAuthor);
         } catch (err: any) {
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
+            if (req.file) {
+                const publicId = photo.split("/").pop()?.split(".")[0];
+                await cloudinary.uploader.destroy(publicId!);
+                fs.unlinkSync(req.file.path);
             }
             next(new httpException(400, "Cant edit the Author please try again."));
         }
@@ -62,11 +83,15 @@ class AuthorAdminRouter implements RouteInterface {
     private deleteAuthor = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
         const id = req.params.id;
         try {
+            const author = await authorController.getAuthorById(id);
+            if (author.photo) {
+                const publicId = author.photo.split("/").pop()?.split(".")[0];
+                await cloudinary.uploader.destroy(publicId!);
+            }
             const deleteAuthor = await authorController.deleteAuthorById(id);
             res.status(200).json(deleteAuthor)
         }
         catch (err: any) {
-
             next(new httpException(400, err.massage as string));
         }
     }

@@ -6,7 +6,7 @@ import Pagination from "@/utils/interfaces/pagination.interface";
 import fs from 'fs';
 import mongoose from "mongoose";
 
-const createAuthor = async (obj: IAuthor, photo: string) => {
+const createAuthor = async (photo: string, obj: IAuthor) => {
 
     const { firstName, lastName, dob, description } = obj;
     try {
