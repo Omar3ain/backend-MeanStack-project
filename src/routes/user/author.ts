@@ -29,8 +29,6 @@ class authorRouter implements RouteInterface {
         try {
             const author = await authorController.getAuthorById(req.params.id)
             if (author) { res.status(200).json(author) }
-
-
         }
         catch (error: any) {
             next(new httpException(400, error.massage as string))

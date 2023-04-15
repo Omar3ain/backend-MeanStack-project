@@ -36,9 +36,11 @@ class bookAdminRouter implements RouteInterface {
       if (req.file) {
         const result = await cloudinary.uploader.upload(req.file.path);
         coverPhoto = result.secure_url;
+      }
+      const book = await bookController.createBook(req.body, coverPhoto);
+      if (req.file) {
         fs.unlinkSync(req.file.path);
       }
-      const book = await bookController.createBook(req.body, coverPhoto);;
       res.status(200).json({ book });
     } catch (error: any) {
       if (req.file) {
@@ -84,10 +86,12 @@ class bookAdminRouter implements RouteInterface {
         }
         const result = await cloudinary.uploader.upload(req.file.path);
         coverPhoto = result.secure_url;
-        fs.unlinkSync(req.file.path);
         req.body.coverPhoto = coverPhoto;
       }
       const book = await bookController.editBook(id, req.body);
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
       res.status(200).json({ status: 'Updated successfully', updatedBook: book });
     } catch (error: any) {
       if (req.file) {

@@ -54,10 +54,12 @@ class userRouter implements RouteInterface {
         }
         const result = await cloudinary.uploader.upload(req.file.path);
         avatar = result.secure_url;
-        fs.unlinkSync(req.file.path);
         req.body.avatar = avatar;
       }
       const user = await userController.editUser(id, req.body);
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
       res.status(200).json({ status: 'Updated successfully', updatedUser: user });
     } catch (error: any) {
       if (req.file) {

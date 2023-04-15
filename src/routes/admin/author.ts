@@ -37,9 +37,11 @@ class AuthorAdminRouter implements RouteInterface {
             if (req.file) {
                 const result = await cloudinary.uploader.upload(req.file.path);
                 photo = result.secure_url;
-                fs.unlinkSync(req.file.path);
             }
             const createdAuthor = await authorController.createAuthor(photo, req.body);
+            if (req.file) {
+                fs.unlinkSync(req.file.path);
+            }
             res.status(200).json({ createdAuthor });
         } catch (err: any) {
             if (req.file) {
@@ -63,10 +65,12 @@ class AuthorAdminRouter implements RouteInterface {
                 }
                 const result = await cloudinary.uploader.upload(req.file.path);
                 photo = result.secure_url;
-                fs.unlinkSync(req.file.path);
                 req.body.photo = photo;
             }
             const updatedAuthor = await authorController.updateAuthor(id, req.body);
+            if (req.file) {
+                fs.unlinkSync(req.file.path);
+            }
             res.status(200).json(updatedAuthor);
         } catch (err: any) {
             if (req.file) {
