@@ -360,7 +360,6 @@ const editReview = async (bookId: string, update: Review) => {
                 },
             },
         );
-
         await session.commitTransaction();
         const updatedBook = await Book.findById(bookId);
         return updatedBook;
@@ -381,11 +380,29 @@ const updatedReview = async (bookId: string, update: Review) => {
             if (userReviewExistInBook) {
                 return editReview(bookId, update);
             } else {
-                return await Book.findByIdAndUpdate(
+                await Book.findByIdAndUpdate(
                     { _id: bookId },
                     { $push: { reviews: update } },
                     { new: true, runValidators: true }
                 ).exec();
+                const bID = new mongoose.Types.ObjectId(bookId);
+                const avgRate = await Book.aggregate([
+                    { $match: { _id: bID } },
+                    {
+                        $project: {
+                            avgRating: { $avg: '$reviews.rating' }
+                        }
+                    }
+                ]);
+                await User.findOneAndUpdate(
+                    { _id: update.userId, "books._id": bID },
+                    {
+                        $set: {
+                            "books.$.reviews.rating": new Number(update.rating),
+                            "books.$.avgRate": avgRate[0].avgRating
+                        },
+                    },
+                );
             }
         }
     } catch (error) {
@@ -493,6 +510,8 @@ const updateRating = async (bookId: string, rating: Rating) => {
             );
             if (userReviewExistInBook) {
                 return editRate(bookId, rating);
+            } else {
+                throw new Error("You have to add a review to the book first!");
             }
         }
     } catch (error) {
