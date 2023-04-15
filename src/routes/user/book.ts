@@ -70,7 +70,7 @@ class bookRouter implements RouteInterface {
       const updatedUser = await bookController.editBookShelve(req.params.id, shelve, req.user!._id!);
       res.status(200).json({ status: "Success", user: updatedUser });
     } catch (error: any) {
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
     }
   }
   private editReviews = async (req: CustomRequest, res: Response, next: NextFunction): Promise<Response | void> => {
@@ -81,7 +81,7 @@ class bookRouter implements RouteInterface {
       const updatedReview = await bookController.updatedReview(bookId, req.body)
       res.status(200).json(updatedReview)
     } catch (error: any) {
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
 
     }
   }
@@ -91,7 +91,7 @@ class bookRouter implements RouteInterface {
       const reviews = await bookController.getReviews(bookId)
       res.status(200).json(reviews)
     } catch (error: any) {
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
     }
   }
   private editRatings = async (req: CustomRequest, res: Response, next: NextFunction): Promise<Response | void> => {
@@ -101,7 +101,7 @@ class bookRouter implements RouteInterface {
       const rates = await bookController.updateRating(bookId, req.body);
       res.status(200).json(rates);
     } catch (error: any) {
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
     }
   }
 
@@ -110,7 +110,7 @@ class bookRouter implements RouteInterface {
       const pops = await bookController.getPopulars();
       res.status(200).json(pops);
     } catch (error: any) {
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
     }
   }
 }

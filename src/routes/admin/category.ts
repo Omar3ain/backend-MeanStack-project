@@ -38,7 +38,7 @@ class categoryAdminRouter implements RouteInterface {
       const categories = await categoryController.getAll(req.query)
       res.status(200).json({ categories });
     } catch (error: any) {
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
     }
   }
 
@@ -47,7 +47,6 @@ class categoryAdminRouter implements RouteInterface {
     let categoryCover = '';
     try {
       if (req.file) {
-        console.log(req.file)
         const result = await cloudinary.uploader.upload(req.file.path);
         categoryCover = result.secure_url;
         fs.unlinkSync(req.file.path);
@@ -60,7 +59,7 @@ class categoryAdminRouter implements RouteInterface {
         await cloudinary.uploader.destroy(publicId!);
         fs.unlinkSync(req.file.path);
       }
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
     }
   }
 
@@ -68,14 +67,14 @@ class categoryAdminRouter implements RouteInterface {
     const { id } = req.params;
     try {
       const categoryDetail = await categoryController.getById(id);
+      const category = await categoryController.remove(id);
       if (categoryDetail?.categoryCover) {
         const publicId = categoryDetail.categoryCover.split("/").pop()?.split(".")[0];
         await cloudinary.uploader.destroy(publicId!);
       }
-      const category = await categoryController.remove(id);
       res.status(200).json({ status: 201, category });
     } catch (error: any) {
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
     }
   }
 
@@ -103,7 +102,7 @@ class categoryAdminRouter implements RouteInterface {
         await cloudinary.uploader.destroy(publicId!);
         fs.unlinkSync(req.file.path);
       }
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
     }
   }
 
@@ -114,7 +113,7 @@ class categoryAdminRouter implements RouteInterface {
       if (books.length < 1) next(new httpException(400, "no books in this category"));
       res.status(200).json({ status: 201, books });
     } catch (error: any) {
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
     }
   }
 
@@ -124,7 +123,7 @@ class categoryAdminRouter implements RouteInterface {
       const category = await categoryController.getById(id);
       res.status(200).json({ status: 201, category });
     } catch (error: any) {
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
     }
   }
 

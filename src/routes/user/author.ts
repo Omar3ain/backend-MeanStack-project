@@ -3,7 +3,6 @@ import { Router, Request, Response, NextFunction } from 'express';
 import RouteInterface from '@/utils/interfaces/router.interface';
 import authorController from '@/controllers/author';
 import httpException from '@/utils/exceptions/http.exception';
-import Pagination from '@/utils/interfaces/pagination.interface';
 
 class authorRouter implements RouteInterface {
     public router: Router = Router();
@@ -30,8 +29,6 @@ class authorRouter implements RouteInterface {
         try {
             const author = await authorController.getAuthorById(req.params.id)
             if (author) { res.status(200).json(author) }
-
-
         }
         catch (error: any) {
             next(new httpException(400, error.massage as string))

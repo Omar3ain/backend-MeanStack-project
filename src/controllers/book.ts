@@ -1,8 +1,7 @@
+import mongoose from "mongoose";
 import Review from "@/utils/interfaces/review.interface";
 import Book from "@/models/Book";
 import User from "@/models/User";
-import mongoose, { Types } from "mongoose";
-import fs from "fs";
 
 import iBook, { BookUpdate } from "@/utils/interfaces/book.interface";
 import {
@@ -37,42 +36,18 @@ const createBook = async (obj: iBook, coverPhoto: string) => {
 const deleteBook = async (id: string) => {
     try {
         const book = await Book.findByIdAndDelete({ _id: id });
-        const filepath =
-            book?.coverPhoto.split("/")[3] +
-            "/" +
-            book?.coverPhoto.split("/")[4] +
-            "/" +
-            book?.coverPhoto.split("/")[5];
-        if (fs.existsSync(filepath)) {
-            fs.unlinkSync(filepath);
-        }
         return book;
     } catch (err) {
         throw new Error(err as string);
     }
 };
+
 const editBook = async (id: string, obj: BookUpdate) => {
     try {
-        const beforeUpdateBook = await getBookDetails(id);
         const updatedBook = await Book.findByIdAndUpdate({ _id: id }, obj, {
             new: true,
             runValidators: true,
         }).exec();
-        if (
-            obj.coverPhoto &&
-            beforeUpdateBook &&
-            beforeUpdateBook.coverPhoto !== obj.coverPhoto
-        ) {
-            const filepath =
-                beforeUpdateBook?.coverPhoto.split("/")[3] +
-                "/" +
-                beforeUpdateBook?.coverPhoto.split("/")[4] +
-                "/" +
-                beforeUpdateBook?.coverPhoto.split("/")[5];
-            if (fs.existsSync(filepath)) {
-                fs.unlinkSync(filepath);
-            }
-        }
         return updatedBook;
     } catch (err) {
         throw new Error(err as string);
@@ -360,7 +335,6 @@ const editReview = async (bookId: string, update: Review) => {
                 },
             },
         );
-
         await session.commitTransaction();
         const updatedBook = await Book.findById(bookId);
         return updatedBook;
@@ -381,11 +355,29 @@ const updatedReview = async (bookId: string, update: Review) => {
             if (userReviewExistInBook) {
                 return editReview(bookId, update);
             } else {
-                return await Book.findByIdAndUpdate(
+                await Book.findByIdAndUpdate(
                     { _id: bookId },
                     { $push: { reviews: update } },
                     { new: true, runValidators: true }
                 ).exec();
+                const bID = new mongoose.Types.ObjectId(bookId);
+                const avgRate = await Book.aggregate([
+                    { $match: { _id: bID } },
+                    {
+                        $project: {
+                            avgRating: { $avg: '$reviews.rating' }
+                        }
+                    }
+                ]);
+                await User.findOneAndUpdate(
+                    { _id: update.userId, "books._id": bID },
+                    {
+                        $set: {
+                            "books.$.reviews.rating": new Number(update.rating),
+                            "books.$.avgRate": avgRate[0].avgRating
+                        },
+                    },
+                );
             }
         }
     } catch (error) {
@@ -493,6 +485,8 @@ const updateRating = async (bookId: string, rating: Rating) => {
             );
             if (userReviewExistInBook) {
                 return editRate(bookId, rating);
+            } else {
+                throw new Error("You have to add a review to the book first!");
             }
         }
     } catch (error) {

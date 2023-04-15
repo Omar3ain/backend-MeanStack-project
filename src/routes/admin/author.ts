@@ -35,12 +35,13 @@ class AuthorAdminRouter implements RouteInterface {
         let photo = '';
         try {
             if (req.file) {
-                console.log(req.file)
                 const result = await cloudinary.uploader.upload(req.file.path);
                 photo = result.secure_url;
-                fs.unlinkSync(req.file.path);
             }
             const createdAuthor = await authorController.createAuthor(photo, req.body);
+            if (req.file) {
+                fs.unlinkSync(req.file.path);
+            }
             res.status(200).json({ createdAuthor });
         } catch (err: any) {
             if (req.file) {
@@ -48,7 +49,7 @@ class AuthorAdminRouter implements RouteInterface {
                 await cloudinary.uploader.destroy(publicId!);
                 fs.unlinkSync(req.file.path);
             }
-            next(new httpException(400, err.massage as string));
+            next(new httpException(400, err.massage));
         }
     };
 
@@ -64,10 +65,12 @@ class AuthorAdminRouter implements RouteInterface {
                 }
                 const result = await cloudinary.uploader.upload(req.file.path);
                 photo = result.secure_url;
-                fs.unlinkSync(req.file.path);
                 req.body.photo = photo;
             }
             const updatedAuthor = await authorController.updateAuthor(id, req.body);
+            if (req.file) {
+                fs.unlinkSync(req.file.path);
+            }
             res.status(200).json(updatedAuthor);
         } catch (err: any) {
             if (req.file) {
@@ -84,15 +87,15 @@ class AuthorAdminRouter implements RouteInterface {
         const id = req.params.id;
         try {
             const author = await authorController.getAuthorById(id);
+            const deleteAuthor = await authorController.deleteAuthorById(id);
             if (author.photo) {
                 const publicId = author.photo.split("/").pop()?.split(".")[0];
                 await cloudinary.uploader.destroy(publicId!);
             }
-            const deleteAuthor = await authorController.deleteAuthorById(id);
             res.status(200).json(deleteAuthor)
         }
         catch (err: any) {
-            next(new httpException(400, err.massage as string));
+            next(new httpException(400, err.message));
         }
     }
 }

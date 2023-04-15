@@ -35,9 +35,11 @@ class authRouter implements RouteInterface {
       if (req.file) {
         const result = await cloudinary.uploader.upload(req.file.path);
         avatar = result.secure_url;
-        fs.unlinkSync(req.file.path);
       }
       const user = await userController.signUp({ firstName, lastName, email, password, avatar });
+      if(req.file){
+        fs.unlinkSync(req.file.path);
+      }
       res.status(200).json(user);
     } catch (error: any) {
       if (req.file) {

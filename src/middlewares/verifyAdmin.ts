@@ -1,10 +1,11 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
 import User from "@/models/User";
 import httpException from "@/utils/exceptions/http.exception";
+import CustomRequest from "@/utils/interfaces/request.interface";
 
-const verifyAdmin = async (req: Request, res: Response, next: NextFunction) => {
+const verifyAdmin = async (req: CustomRequest, res: Response, next: NextFunction) => {
     try {
         const authorizationHeader = req.headers.authorization as string;
         const token = authorizationHeader.split(' ')[1];
@@ -20,7 +21,7 @@ const verifyAdmin = async (req: Request, res: Response, next: NextFunction) => {
                 next(new httpException(401, "Access denied, Token has expired!"));
             } else {
                 if (admin.isAdmin) {
-                    (<any>req).admin = admin;
+                    req.admin = admin;
                     next();
                 } else {
                     next(new httpException(401, "You are not an Administrator"));

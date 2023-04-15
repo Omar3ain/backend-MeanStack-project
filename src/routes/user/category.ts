@@ -3,7 +3,6 @@ import multer from 'multer';
 
 import RouteInterface from '@/utils/interfaces/router.interface';
 import categoryController from '@/controllers/category';
-import userController from '@/controllers/user';
 import httpException from '@/utils/exceptions/http.exception';
 
 class categoryUserRouter implements RouteInterface {
