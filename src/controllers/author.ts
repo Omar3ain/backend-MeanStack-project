@@ -52,12 +52,15 @@ const updateAuthor = async (authorId: string, obj: AuthorUpdate) => {
 
 const deleteAuthorById = async (id: string) => {
     try {
+        const books = await Book.find({ authorId: id });
+        if(books && books.length > 0) {
+            throw new Error("author has books");
+        }else{
         const deletedauthor = await Author.findByIdAndDelete(id)
         return deletedauthor;
+        }
     }
     catch (error) {
-
-
         throw new Error(error as string);
     }
 }

@@ -48,7 +48,7 @@ class bookAdminRouter implements RouteInterface {
         await cloudinary.uploader.destroy(publicId!);
         fs.unlinkSync(req.file.path);
       }
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
     }
   }
   private getBook = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
@@ -56,7 +56,7 @@ class bookAdminRouter implements RouteInterface {
       const book = await bookController.getBookDetails(req.params.id);
       res.status(200).json(book);
     } catch (error: any) {
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
     }
   }
 
@@ -64,14 +64,14 @@ class bookAdminRouter implements RouteInterface {
     try {
       const id: string = req.params.id;
       const book = await bookController.getBookDetails(id);
+      await bookController.deleteBook(id);
       if (book?.coverPhoto) {
         const publicId = book.coverPhoto.split("/").pop()?.split(".")[0];
         await cloudinary.uploader.destroy(publicId!);
       }
-      const resp = await bookController.deleteBook(id);
       res.status(200).json({ status: 'Deleted successfully' });
     } catch (error: any) {
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
     }
   }
   private update = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
@@ -99,7 +99,7 @@ class bookAdminRouter implements RouteInterface {
         await cloudinary.uploader.destroy(publicId!);
         fs.unlinkSync(req.file.path);
       }
-      next(new httpException(400, error.message as string));
+      next(new httpException(400, error.message));
     }
   }
 

@@ -49,7 +49,7 @@ class AuthorAdminRouter implements RouteInterface {
                 await cloudinary.uploader.destroy(publicId!);
                 fs.unlinkSync(req.file.path);
             }
-            next(new httpException(400, err.massage as string));
+            next(new httpException(400, err.massage));
         }
     };
 
@@ -87,15 +87,15 @@ class AuthorAdminRouter implements RouteInterface {
         const id = req.params.id;
         try {
             const author = await authorController.getAuthorById(id);
+            const deleteAuthor = await authorController.deleteAuthorById(id);
             if (author.photo) {
                 const publicId = author.photo.split("/").pop()?.split(".")[0];
                 await cloudinary.uploader.destroy(publicId!);
             }
-            const deleteAuthor = await authorController.deleteAuthorById(id);
             res.status(200).json(deleteAuthor)
         }
         catch (err: any) {
-            next(new httpException(400, err.massage as string));
+            next(new httpException(400, err.message));
         }
     }
 }

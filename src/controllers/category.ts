@@ -35,8 +35,13 @@ const getById = async (categoryId: string): Promise<ICategory> => {
 }
 const remove = async (categoryId: string): Promise<ICategory> => {
     try {
-        const deletedCategory = await Category.findByIdAndDelete({ _id: categoryId });
-        return deletedCategory!;
+        const books = await Book.find({ categoryId });
+        if (books && books.length > 0) {
+            throw new Error("Category can not be deleted");
+        } else {
+            const deletedCategory = await Category.findByIdAndDelete({ _id: categoryId });
+            return deletedCategory!;
+        }
     } catch (err) {
         throw new Error(err as string);
     }
