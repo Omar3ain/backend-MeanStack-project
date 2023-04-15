@@ -3,7 +3,6 @@ import { Router, Request, Response, NextFunction } from 'express';
 import RouteInterface from '@/utils/interfaces/router.interface';
 import authorController from '@/controllers/author';
 import httpException from '@/utils/exceptions/http.exception';
-import Pagination from '@/utils/interfaces/pagination.interface';
 
 class authorRouter implements RouteInterface {
     public router: Router = Router();

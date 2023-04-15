@@ -35,7 +35,6 @@ class AuthorAdminRouter implements RouteInterface {
         let photo = '';
         try {
             if (req.file) {
-                console.log(req.file)
                 const result = await cloudinary.uploader.upload(req.file.path);
                 photo = result.secure_url;
                 fs.unlinkSync(req.file.path);

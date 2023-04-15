@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { Multer } from 'multer';
 import { v2 as cloudinary } from "cloudinary";
 import fs from 'fs';
@@ -32,9 +32,10 @@ class userRouter implements RouteInterface {
     this.router.get('/books', verifyAuth, this.getBookByShelve);
   }
 
-  private getUser = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  private getUser = async (req: CustomRequest, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
-      const user = await userController.getUserDetails((<any>req).user._id);
+      const id = req.user?._id as string;
+      const user = await userController.getUserDetails(id);
       res.status(200).json(user);
     } catch (error: any) {
       next(new httpException(400, error.message as string));
@@ -69,9 +70,9 @@ class userRouter implements RouteInterface {
   /*
     /profile/books?shelve=read&skip=0&limit=10
   */
-  private getBookByShelve = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  private getBookByShelve = async (req: CustomRequest, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
-      const id: string = (<any>req).user._id;
+      const id: string = req.user!._id as string;
       const { shelve, skip, limit }: UserBookQuery = req.query;
       const user = await userController.getUserBooks(id, { shelve, skip, limit });
       res.status(200).json(user);

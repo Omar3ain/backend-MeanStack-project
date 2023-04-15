@@ -47,7 +47,6 @@ class categoryAdminRouter implements RouteInterface {
     let categoryCover = '';
     try {
       if (req.file) {
-        console.log(req.file)
         const result = await cloudinary.uploader.upload(req.file.path);
         categoryCover = result.secure_url;
         fs.unlinkSync(req.file.path);

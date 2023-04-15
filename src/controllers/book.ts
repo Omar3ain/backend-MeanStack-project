@@ -1,8 +1,7 @@
+import mongoose from "mongoose";
 import Review from "@/utils/interfaces/review.interface";
 import Book from "@/models/Book";
 import User from "@/models/User";
-import mongoose, { Types } from "mongoose";
-import fs from "fs";
 
 import iBook, { BookUpdate } from "@/utils/interfaces/book.interface";
 import {
@@ -37,42 +36,18 @@ const createBook = async (obj: iBook, coverPhoto: string) => {
 const deleteBook = async (id: string) => {
     try {
         const book = await Book.findByIdAndDelete({ _id: id });
-        const filepath =
-            book?.coverPhoto.split("/")[3] +
-            "/" +
-            book?.coverPhoto.split("/")[4] +
-            "/" +
-            book?.coverPhoto.split("/")[5];
-        if (fs.existsSync(filepath)) {
-            fs.unlinkSync(filepath);
-        }
         return book;
     } catch (err) {
         throw new Error(err as string);
     }
 };
+
 const editBook = async (id: string, obj: BookUpdate) => {
     try {
-        const beforeUpdateBook = await getBookDetails(id);
         const updatedBook = await Book.findByIdAndUpdate({ _id: id }, obj, {
             new: true,
             runValidators: true,
         }).exec();
-        if (
-            obj.coverPhoto &&
-            beforeUpdateBook &&
-            beforeUpdateBook.coverPhoto !== obj.coverPhoto
-        ) {
-            const filepath =
-                beforeUpdateBook?.coverPhoto.split("/")[3] +
-                "/" +
-                beforeUpdateBook?.coverPhoto.split("/")[4] +
-                "/" +
-                beforeUpdateBook?.coverPhoto.split("/")[5];
-            if (fs.existsSync(filepath)) {
-                fs.unlinkSync(filepath);
-            }
-        }
         return updatedBook;
     } catch (err) {
         throw new Error(err as string);

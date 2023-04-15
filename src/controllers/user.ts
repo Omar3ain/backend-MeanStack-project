@@ -1,4 +1,3 @@
-import fs from 'fs';
 import { compare, hash } from "bcrypt";
 import User from "@/models/User";
 import iBook, { BookUpdate } from "@/utils/interfaces/book.interface";
@@ -55,12 +54,6 @@ const editUser = async (id: string, obj: IUserUpdate) => {
         }
         const { oldPassword, newPassword, ...updatedObj } = obj;
         const updatedUser = await User.findByIdAndUpdate(id, updatedObj, { new: true, runValidators: true }).exec();
-        if (obj.avatar && user?.avatar !== obj.avatar) {
-            const filepath = user?.avatar.split('/')[3] + '/' + user?.avatar.split('/')[4] + '/' + user?.avatar.split('/')[5];
-            if (fs.existsSync(filepath)) {
-                fs.unlinkSync(filepath);
-            }
-        }
         return updatedUser;
     } catch (err) {
         throw new Error(err as string);
