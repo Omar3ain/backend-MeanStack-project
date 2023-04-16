@@ -24,6 +24,7 @@ const userRegisterSchema = Joi.object({
     }
     return value;
   }),
+  isAdmin: Joi.forbidden(),
 });
 
 
@@ -47,7 +48,7 @@ const userEditSchema = Joi.object({
   oldPassword: Joi.string().optional(),
   newPassword: userRegisterSchema.extract('password').optional(),
   avatar: Joi.string().allow('').optional(),
-}); 
+});
 
 
 export default { userRegisterSchema, userLoginSchema, userEditSchema };

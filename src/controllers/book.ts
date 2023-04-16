@@ -34,23 +34,42 @@ const createBook = async (obj: iBook, coverPhoto: string) => {
 };
 
 const deleteBook = async (id: string) => {
+    const session = await mongoose.startSession();
     try {
-        const book = await Book.findByIdAndDelete({ _id: id });
+        session.startTransaction();
+        const book = await Book.findByIdAndDelete({ _id: id }, { session });
+        const bookId = new mongoose.Types.ObjectId(id);
+        await User.updateMany({}, { $pull: { books: { _id: bookId } } }, { session });
+        await session.commitTransaction();
         return book;
     } catch (err) {
+        await session.abortTransaction();
         throw new Error(err as string);
+    } finally {
+        await session.endSession();
     }
 };
 
 const editBook = async (id: string, obj: BookUpdate) => {
+    const session = await mongoose.startSession();
     try {
+        session.startTransaction();
         const updatedBook = await Book.findByIdAndUpdate({ _id: id }, obj, {
             new: true,
             runValidators: true,
-        }).exec();
+
+        }).populate("authorId", "firstName lastName")
+            .lean()
+            .session(session);
+        const { name, authorId: { firstName, lastName }, coverPhoto }: any = updatedBook;
+        await User.updateMany({ 'books._id': updatedBook?._id }, { $set: { "books.$.name": name, "books.$.author.firstName": firstName, "books.$.author.lastName": lastName, "books.$.coverPhoto": coverPhoto } }).session(session);
+        await session.commitTransaction();
         return updatedBook;
     } catch (err) {
+        await session.abortTransaction();
         throw new Error(err as string);
+    } finally {
+        await session.endSession();
     }
 };
 
@@ -261,6 +280,15 @@ const getBookForUser = async (id: string, uId: string) => {
             },
             { $project: { name: 1, coverPhoto: 1, author: { $arrayElemAt: ["$author", 0] }, shelve: 1, "reviews.rating": "$reviews.rating" } },
         ]);
+        const avgRate = await Book.aggregate([
+            { $match: { _id: bookId } },
+            {
+                $project: {
+                    avgRating: { $avg: '$reviews.rating' }
+                }
+            }
+        ]);
+        book[0].avgRate = avgRate[0].avgRating;
         return book[0];
     } catch (error) {
         throw new Error(error as string);
@@ -314,7 +342,8 @@ const editReview = async (bookId: string, update: Review) => {
                     "reviews.$.rating": update.rating,
                 },
             },
-            { new: true }
+            { new: true, session },
+
         );
 
         const bID = new mongoose.Types.ObjectId(bookId);
@@ -325,7 +354,7 @@ const editReview = async (bookId: string, update: Review) => {
                     avgRating: { $avg: '$reviews.rating' }
                 }
             }
-        ]);
+        ], { session });
         await User.findOneAndUpdate(
             { _id: update.userId, "books._id": bID },
             {
@@ -334,11 +363,13 @@ const editReview = async (bookId: string, update: Review) => {
                     "books.$.avgRate": avgRate[0].avgRating
                 },
             },
+            { session }
         );
         await session.commitTransaction();
         const updatedBook = await Book.findById(bookId);
         return updatedBook;
     } catch (error) {
+        await session.abortTransaction();
         throw new Error(error as string);
     } finally {
         await session.endSession();
