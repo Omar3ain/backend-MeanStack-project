@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import Joi from 'joi';
 
 import ICategory from '@/utils/interfaces/category.update.interface';
