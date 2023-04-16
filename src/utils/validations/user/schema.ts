@@ -12,10 +12,10 @@ const passwordOptions = {
 };
 
 const userRegisterSchema = Joi.object({
-  firstName: Joi.string().required(),
-  lastName: Joi.string().required(),
-  email: Joi.string().email().required(),
-  password: Joi.string().required().custom((value, helpers) => {
+  firstName: Joi.string().trim().required(),
+  lastName: Joi.string().trim().required(),
+  email: Joi.string().trim().email().required(),
+  password: Joi.string().trim().required().custom((value, helpers) => {
     const result = passwordComplexity(passwordOptions).validate(value, {
       abortEarly: false,
     });
@@ -29,8 +29,8 @@ const userRegisterSchema = Joi.object({
 
 
 const userLoginSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().required().custom((value, helpers) => {
+  email: Joi.string().trim().email().required(),
+  password: Joi.string().trim().required().custom((value, helpers) => {
     const result = passwordComplexity(passwordOptions).validate(value, {
       abortEarly: false,
     });

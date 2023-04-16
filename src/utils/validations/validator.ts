@@ -4,8 +4,8 @@ import ICategory from '@/utils/interfaces/category.update.interface';
 
 const registerValidation = (category: ICategory) => {
     const schema = Joi.object({
-        firstName: Joi.string().min(6),
-        name: Joi.string().min(2).max(24).required(),
+        firstName: Joi.string().trim().min(6),
+        name: Joi.string().trim().min(2).max(24).required(),
     });
     return schema.validate(category);
 };
