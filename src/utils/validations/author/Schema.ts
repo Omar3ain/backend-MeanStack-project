@@ -12,7 +12,7 @@ const editAuthorSchema = Joi.object({
 
     firstName: Joi.string().trim().min(5).max(20).required().optional(),
     lastName: Joi.string().trim().min(5).max(20).required().optional(),
-    dob: Joi.date().trim().required().optional(),
+    dob: Joi.date().required().optional(),
     photo: Joi.string().trim().optional(),
     description: Joi.string().trim().optional(),
 });
