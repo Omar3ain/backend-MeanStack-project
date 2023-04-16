@@ -536,6 +536,19 @@ const getReviews = async (bookId: string) => {
     }
 };
 
+
+const getAllBooksForAdmin = async () => {
+    try {
+        const books = await Book.find()
+        .populate("authorId", "firstName lastName")
+        .populate("categoryId", "name")
+        .exec();
+        return books;
+    } catch (error) {
+        throw new Error(error as string);
+    }
+};
+
 export default {
     createBook,
     deleteBook,
@@ -549,4 +562,5 @@ export default {
     searchBooks,
     searchCountBooks,
     getPopulars,
+    getAllBooksForAdmin,
 };

@@ -26,6 +26,7 @@ class bookAdminRouter implements RouteInterface {
 
   private initializeRoutes = () => {
     this.router.get('/:id', verifyAdmin, this.getBook);
+    this.router.get('/get/books', verifyAdmin, this.getBooksAdmin);
     this.router.post('/', verifyAdmin, this.upload.single("coverPhoto"), validationMiddleware(validate.createBook), this.makeBook);
     this.router.delete('/:id', verifyAdmin, this.deleteBook);
     this.router.patch(`/:id`, verifyAdmin, this.upload.single("coverPhoto"), validationMiddleware(validate.updateBook), this.update);
@@ -101,6 +102,16 @@ class bookAdminRouter implements RouteInterface {
       }
       next(new httpException(400, error.message));
     }
+  }
+
+  private getBooksAdmin = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+    try {
+      const books = await bookController.getAllBooksForAdmin();
+      res.status(200).json(books);
+    } catch (error: any) {
+      next(new httpException(400, error.message));
+    }
+
   }
 
 }
